@@ -1,0 +1,37 @@
+package writers
+
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"log/slog"
+	"os"
+
+	"github.com/navod-abay/mandelbrotset-go/models"
+)
+
+func WriteToCSV(pixelArray [][]models.Pixel) {
+
+	fmt.Println("Writing output to a csv file")
+	f, err := os.OpenFile("output.csv", os.O_WRONLY|os.O_CREATE, 0644)
+	writer := bufio.NewWriter(f)
+
+	if err == nil {
+		for i := range pixelArray {
+			for j := range pixelArray[i] {
+				if pixelArray[i][j].Included > 0 {
+					writer.WriteByte(pixelArray[i][j].Included)
+				} else {
+					writer.WriteString("0,")
+				}
+			}
+			writer.WriteString("\n")
+		}
+		slog.Debug("Finished writing to the buffer")
+		writer.Flush()
+		slog.Debug("Flushed the buffer")
+	} else {
+		log.Fatal(err)
+	}
+	defer f.Close()
+}
