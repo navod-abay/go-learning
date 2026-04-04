@@ -10,7 +10,7 @@ import (
 	"github.com/navod-abay/mandelbrotset-go/models"
 )
 
-func WriteToCSV(pixelArray [][]models.Pixel) {
+func WriteToCSVNoColor(pixelArray [][]models.NoColorPixel) {
 
 	fmt.Println("Writing output to a csv file")
 	f, err := os.OpenFile("output.csv", os.O_WRONLY|os.O_CREATE, 0644)
@@ -19,8 +19,8 @@ func WriteToCSV(pixelArray [][]models.Pixel) {
 	if err == nil {
 		for i := range pixelArray {
 			for j := range pixelArray[i] {
-				if pixelArray[i][j].Included > 0 {
-					writer.WriteByte(pixelArray[i][j].Included)
+				if pixelArray[i][j].Included {
+					writer.WriteString("1, ")
 				} else {
 					writer.WriteString("0,")
 				}

@@ -1,8 +1,8 @@
 package models
 
-type Pixel struct {
+type NoColorPixel struct {
 	Number   complex128
-	Included byte
+	Included bool
 }
 
 type ImageDimensions struct {

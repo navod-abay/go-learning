@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -15,6 +16,7 @@ import (
 
 const (
 	maximum_iteration_depth = 1000
+	base_resolution         = 128
 )
 
 func getIntWithDefaultValue(prompt string, _default int) int {
@@ -111,9 +113,9 @@ func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_leve
 	Y_range := imageDimensions.Y_high - imageDimensions.Y_low
 	var pixel_size float64
 	if X_range < Y_range {
-		pixel_size = float64(X_range) / float64(128*(int(1)<<subdivision_level))
+		pixel_size = float64(X_range) / float64(base_resolution*(int(1)<<subdivision_level))
 	} else {
-		pixel_size = float64(Y_range) / float64(128*(int(1)<<subdivision_level))
+		pixel_size = float64(Y_range) / float64(base_resolution*(int(1)<<subdivision_level))
 	}
 	X_size := int(float64(X_range) / pixel_size)
 	Y_size := int(float64(Y_range) / pixel_size)
@@ -132,8 +134,7 @@ func complexMultiplicationSomponents(num complex128) (float64, float64, float64)
 	return r * r, r * i, i * i
 }
 
-func checkMandelbrotSetInclusion(z_0 complex128, max_iteration int) byte {
-	var isMember byte = 0
+func checkMandelbrotSetInclusion(z_0 complex128, max_iteration int) bool {
 	z_i := z_0
 	r := real(z_0)
 	i := imag(z_0)
@@ -141,12 +142,12 @@ func checkMandelbrotSetInclusion(z_0 complex128, max_iteration int) byte {
 	for ; num < max_iteration; num++ {
 		rr, ri, ii := complexMultiplicationSomponents(z_i)
 		if rr+ii > 4 {
-			break
+			return false
 		} else {
 			z_i = complex(rr-ii+r, 2*ri+i)
 		}
 	}
-	return isMember
+	return true
 }
 
 func main() {
@@ -172,14 +173,14 @@ func main() {
 	fmt.Printf("Pixel size: %v\n", pixel_size)
 
 	// Creating the image array
-	pixelArray := make([][]models.Pixel, X_size)
+	pixelArray := make([][]models.NoColorPixel, X_size)
 	for i := range pixelArray {
-		pixelArray[i] = make([]models.Pixel, Y_size)
+		pixelArray[i] = make([]models.NoColorPixel, Y_size)
 	}
 	fmt.Println("Pixel Array initialization is over")
 
 	optimizationFlag := flag.Bool("optimization", true, "Set to true to enable optimization")
-	csvWriteFlag := flag.Bool("write-csv", false, "Set to true to write the end result to a csv")
+	csvWriteFlag := flag.Bool("write-csv", true, "Set to true to write the end result to a csv")
 	bmpWriteFlag := flag.Bool("write-bmp", true, "Set to true to create a bmp image file")
 	flag.Parse()
 
@@ -193,7 +194,7 @@ func main() {
 			y_val := imageDimensions.Y_low
 			for j := range pixelArray[i] {
 				cur_num := complex(x_val, y_val)
-				pixelArray[i][j] = models.Pixel{cur_num, checkMandelbrotSetInclusion(cur_num, maximum_iteration_depth)}
+				pixelArray[i][j] = models.NoColorPixel{Number: cur_num, Included: checkMandelbrotSetInclusion(cur_num, maximum_iteration_depth)}
 				y_val += pixel_size
 			}
 			x_val += pixel_size
@@ -201,10 +202,14 @@ func main() {
 	}
 	fmt.Println("Calculation is over")
 	if *csvWriteFlag {
-		writers.WriteToCSV(pixelArray)
+		writers.WriteToCSVNoColor(pixelArray)
 	}
 	if *bmpWriteFlag {
-		writers.WriteToBmpFile(pixelArray)
+		includedColor := make([]byte, 2)
+		binary.LittleEndian.PutUint16(includedColor, 0)
+		excludedColor := make([]byte, 2)
+		binary.LittleEndian.PutUint16(excludedColor, 255)
+		writers.WriteToBmpFileNoColor(pixelArray, includedColor, excludedColor)
 
 	}
 }

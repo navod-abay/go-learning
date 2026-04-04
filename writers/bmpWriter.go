@@ -45,7 +45,7 @@ func WriteBmpHeader(file *os.File, headerDetails BmpHeaderDetails) {
 	bufferedWriter.Flush()
 }
 
-func CalculateBMPHeaderDetails(pixelArray [][]models.Pixel) BmpHeaderDetails {
+func CalculateBMPHeaderDetails(pixelArray [][]models.NoColorPixel) BmpHeaderDetails {
 	var details BmpHeaderDetails
 	details.infoHeaderSize = 40
 	details.width = int32(len(pixelArray))
@@ -62,7 +62,7 @@ func CalculateBMPHeaderDetails(pixelArray [][]models.Pixel) BmpHeaderDetails {
 	return details
 }
 
-func WriteToBmpFile(pixelArray [][]models.Pixel) {
+func WriteToBmpFileNoColor(pixelArray [][]models.NoColorPixel, includedColor []byte, excludedColor []byte) {
 	fmt.Println("Writing output to bmp file")
 	bmp_f, err := os.OpenFile("output.bmp", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -72,7 +72,11 @@ func WriteToBmpFile(pixelArray [][]models.Pixel) {
 		writer := bufio.NewWriter(bmp_f)
 		for i := range pixelArray[0] {
 			for j := range pixelArray {
-				writer.WriteByte(pixelArray[j][i].Included)
+				if pixelArray[j][i].Included {
+					writer.Write(includedColor)
+				} else {
+					writer.Write(excludedColor)
+				}
 			}
 		}
 		slog.Debug("Finished writing to the buffer")
