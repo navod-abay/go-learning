@@ -120,10 +120,13 @@ func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_leve
 	X_size := int(float64(X_range) / pixel_size)
 	Y_size := int(float64(Y_range) / pixel_size)
 	updateImageDimensions := models.ImageDimensions{
-		X_low:  imageDimensions.X_low,
-		X_high: imageDimensions.X_low + pixel_size*float64(X_size),
-		Y_low:  imageDimensions.Y_low,
-		Y_high: imageDimensions.Y_high,
+		X_low:      imageDimensions.X_low,
+		X_high:     imageDimensions.X_low + pixel_size*float64(X_size),
+		Y_low:      imageDimensions.Y_low,
+		Y_high:     imageDimensions.Y_high,
+		Pixel_size: pixel_size,
+		X_size:     X_size,
+		Y_size:     Y_size,
 	}
 	return pixel_size, X_size, Y_size, updateImageDimensions
 }
@@ -134,7 +137,7 @@ func complexMultiplicationSomponents(num complex128) (float64, float64, float64)
 	return r * r, r * i, i * i
 }
 
-func checkMandelbrotSetInclusion(z_0 complex128, max_iteration int) bool {
+func checkMandelbrotSetInclusionNoColor(z_0 complex128, max_iteration int) bool {
 	z_i := z_0
 	r := real(z_0)
 	i := imag(z_0)
@@ -148,6 +151,70 @@ func checkMandelbrotSetInclusion(z_0 complex128, max_iteration int) bool {
 		}
 	}
 	return true
+}
+
+func checkMandelbrotSetInclusion(z_0 complex128, max_iteration int) uint16 {
+	z_i := z_0
+	r := real(z_0)
+	i := imag(z_0)
+	var num uint16 = 0
+	for ; num < uint16(max_iteration); num++ {
+		rr, ri, ii := complexMultiplicationSomponents(z_i)
+		if rr+ii > 4 {
+			return num
+		} else {
+			z_i = complex(rr-ii+r, 2*ri+i)
+		}
+	}
+	return num
+}
+
+func ConstructAndCalculateNoColorPixelArray(imageDimensions models.ImageDimensions) [][]models.NoColorPixel {
+	pixelArray := make([][]models.NoColorPixel, imageDimensions.X_size)
+	for i := range pixelArray {
+		pixelArray[i] = make([]models.NoColorPixel, imageDimensions.Y_size)
+	}
+	fmt.Println("Pixel Array initialization is over")
+
+	// Populate the array
+
+	// if no optimizatio is done, check the values while creation
+	x_val := imageDimensions.X_low
+	fmt.Println("Running in non optimized mode")
+	for i := range pixelArray {
+		y_val := imageDimensions.Y_low
+		for j := range pixelArray[i] {
+			cur_num := complex(x_val, y_val)
+			pixelArray[i][j] = models.NoColorPixel{Number: cur_num, Included: checkMandelbrotSetInclusionNoColor(cur_num, maximum_iteration_depth)}
+			y_val += imageDimensions.Pixel_size
+		}
+		x_val += imageDimensions.Pixel_size
+	}
+	return pixelArray
+}
+
+func ConstructAndCalculatePixelArray(imageDimensions models.ImageDimensions) [][]models.ColorPixel {
+	pixelArray := make([][]models.ColorPixel, imageDimensions.X_size)
+	for i := range pixelArray {
+		pixelArray[i] = make([]models.ColorPixel, imageDimensions.Y_size)
+	}
+	fmt.Println("Pixel Array initialization is over")
+
+	// Populate the array
+
+	// if no optimizatio is done, check the values while creation
+	x_val := imageDimensions.X_low
+	fmt.Println("Running in non optimized mode")
+	for i := range pixelArray {
+		y_val := imageDimensions.Y_low
+		for j := range pixelArray[i] {
+			cur_num := complex(x_val, y_val)
+			pixelArray[i][j] = models.ColorPixel{Number: cur_num, NumIterations: checkMandelbrotSetInclusion(cur_num, maximum_iteration_depth)}
+			y_val += imageDimensions.Pixel_size
+		}
+		x_val += imageDimensions.Pixel_size
+	}
+	return pixelArray
 }
 
 func main() {
@@ -172,44 +239,42 @@ func main() {
 	fmt.Printf("Y axis size: %v\n", Y_size)
 	fmt.Printf("Pixel size: %v\n", pixel_size)
 
-	// Creating the image array
-	pixelArray := make([][]models.NoColorPixel, X_size)
-	for i := range pixelArray {
-		pixelArray[i] = make([]models.NoColorPixel, Y_size)
-	}
-	fmt.Println("Pixel Array initialization is over")
-
 	optimizationFlag := flag.Bool("optimization", true, "Set to true to enable optimization")
+	colorFlag := flag.Bool("not-colorized", true, "Produces a two colored image when set to true")
 	csvWriteFlag := flag.Bool("write-csv", true, "Set to true to write the end result to a csv")
 	bmpWriteFlag := flag.Bool("write-bmp", true, "Set to true to create a bmp image file")
+
 	flag.Parse()
-
-	// Populate the array
-
-	// if no optimizatio is done, check the values while creation
-	x_val := imageDimensions.X_low
+	// Creating the image array
 	if *optimizationFlag {
-		fmt.Println("Running in non optimized mode")
-		for i := range pixelArray {
-			y_val := imageDimensions.Y_low
-			for j := range pixelArray[i] {
-				cur_num := complex(x_val, y_val)
-				pixelArray[i][j] = models.NoColorPixel{Number: cur_num, Included: checkMandelbrotSetInclusion(cur_num, maximum_iteration_depth)}
-				y_val += pixel_size
+		if *colorFlag {
+			pixelArray := ConstructAndCalculatePixelArray(imageDimensions)
+			if *csvWriteFlag {
+				writers.WriteToCSV(pixelArray)
 			}
-			x_val += pixel_size
+			if *bmpWriteFlag {
+				includedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(includedColor, 0)
+				excludedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(excludedColor, 255)
+				writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
+
+			}
+		} else {
+			pixelArray := ConstructAndCalculateNoColorPixelArray(imageDimensions)
+			if *csvWriteFlag {
+				writers.WriteToCSVNoColor(pixelArray)
+			}
+			if *bmpWriteFlag {
+				includedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(includedColor, 0)
+				excludedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(excludedColor, 255)
+				writers.WriteToBmpFileNoColor(pixelArray, imageDimensions, includedColor, excludedColor)
+
+			}
 		}
 	}
 	fmt.Println("Calculation is over")
-	if *csvWriteFlag {
-		writers.WriteToCSVNoColor(pixelArray)
-	}
-	if *bmpWriteFlag {
-		includedColor := make([]byte, 2)
-		binary.LittleEndian.PutUint16(includedColor, 0)
-		excludedColor := make([]byte, 2)
-		binary.LittleEndian.PutUint16(excludedColor, 255)
-		writers.WriteToBmpFileNoColor(pixelArray, includedColor, excludedColor)
 
-	}
 }

@@ -7,7 +7,12 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/navod-abay/mandelbrotset-go/colors"
 	"github.com/navod-abay/mandelbrotset-go/models"
+)
+
+const (
+	max_iteration int = 1000 // TODO: Use a command line argument with default values for max_iteration value
 )
 
 type BmpHeaderDetails struct {
@@ -45,11 +50,11 @@ func WriteBmpHeader(file *os.File, headerDetails BmpHeaderDetails) {
 	bufferedWriter.Flush()
 }
 
-func CalculateBMPHeaderDetails(pixelArray [][]models.NoColorPixel) BmpHeaderDetails {
+func CalculateBMPHeaderDetails(imageDimensions models.ImageDimensions) BmpHeaderDetails {
 	var details BmpHeaderDetails
 	details.infoHeaderSize = 40
-	details.width = int32(len(pixelArray))
-	details.height = int32(len(pixelArray[0]))
+	details.width = int32(imageDimensions.X_size)
+	details.height = int32(imageDimensions.Y_size)
 	details.planes = 1
 	details.compression = 0
 	details.imageSize = 0
@@ -62,13 +67,13 @@ func CalculateBMPHeaderDetails(pixelArray [][]models.NoColorPixel) BmpHeaderDeta
 	return details
 }
 
-func WriteToBmpFileNoColor(pixelArray [][]models.NoColorPixel, includedColor []byte, excludedColor []byte) {
-	fmt.Println("Writing output to bmp file")
-	bmp_f, err := os.OpenFile("output.bmp", os.O_WRONLY|os.O_CREATE, 0644)
+func WriteToBmpFileNoColor(pixelArray [][]models.NoColorPixel, imageDimensions models.ImageDimensions, includedColor []byte, excludedColor []byte) {
+	fmt.Println("Writing output to bmp file (No Color)")
+	bmp_f, err := os.OpenFile("outputNoColor.bmp", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		fmt.Println("Failed to opena  writer for the bmp file")
 	} else {
-		WriteBmpHeader(bmp_f, CalculateBMPHeaderDetails(pixelArray))
+		WriteBmpHeader(bmp_f, CalculateBMPHeaderDetails(imageDimensions))
 		writer := bufio.NewWriter(bmp_f)
 		for i := range pixelArray[0] {
 			for j := range pixelArray {
@@ -77,6 +82,27 @@ func WriteToBmpFileNoColor(pixelArray [][]models.NoColorPixel, includedColor []b
 				} else {
 					writer.Write(excludedColor)
 				}
+			}
+		}
+		slog.Debug("Finished writing to the buffer")
+		writer.Flush()
+		slog.Debug("Flushed the buffer")
+	}
+
+	defer bmp_f.Close()
+}
+
+func WriteToBmpFile(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, iterationThreshold int) {
+	fmt.Println("Writing output to bmp file")
+	bmp_f, err := os.OpenFile("output.bmp", os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		fmt.Println("Failed to opena  writer for the bmp file")
+	} else {
+		WriteBmpHeader(bmp_f, CalculateBMPHeaderDetails(imageDimensions))
+		writer := bufio.NewWriter(bmp_f)
+		for i := range pixelArray[0] {
+			for j := range pixelArray {
+				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i].NumIterations))
 			}
 		}
 		slog.Debug("Finished writing to the buffer")
