@@ -19,3 +19,8 @@ type ImageDimensions struct {
 	Y_size     int
 	Pixel_size float64
 }
+
+type Index struct {
+	X int
+	Y int
+}

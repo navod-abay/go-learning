@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/navod-abay/mandelbrotset-go/colors"
 	"github.com/navod-abay/mandelbrotset-go/models"
@@ -111,4 +113,29 @@ func WriteToBmpFile(pixelArray [][]models.ColorPixel, imageDimensions models.Ima
 	}
 
 	defer bmp_f.Close()
+}
+
+func SaveSnapShotBMP(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int) error {
+	currentTime := time.Now()
+	fileName := currentTime.Format(time.RFC3339) + ".bmp"
+	snapshotFilepath := filepath.Join("snapshots", fileName)
+	slog.Debug("Saving a snapshot", "skip", skip)
+	bmp_f, err := os.Create(snapshotFilepath)
+	if err != nil {
+		fmt.Println("Failed to opena  writer for the bmp file")
+	} else {
+		WriteBmpHeader(bmp_f, CalculateBMPHeaderDetails(imageDimensions))
+		writer := bufio.NewWriter(bmp_f)
+		for i := range pixelArray[0] {
+			for j := range pixelArray {
+				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i].NumIterations))
+			}
+		}
+		slog.Debug("Finished writing to the buffer")
+		writer.Flush()
+		slog.Debug("Flushed the buffer")
+	}
+
+	defer bmp_f.Close()
+	return err
 }

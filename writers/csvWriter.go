@@ -6,6 +6,9 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/navod-abay/mandelbrotset-go/models"
 )
@@ -39,13 +42,37 @@ func WriteToCSVNoColor(pixelArray [][]models.NoColorPixel) {
 func WriteToCSV(pixelArray [][]models.ColorPixel) {
 
 	fmt.Println("Writing output to a csv file")
-	f, err := os.OpenFile("output.csv", os.O_WRONLY|os.O_CREATE, 0644)
+	f, err := os.Create("output.csv")
 	writer := bufio.NewWriter(f)
 
 	if err == nil {
 		for i := range pixelArray {
 			for j := range pixelArray[i] {
-				writer.WriteString(string(int32(pixelArray[i][j].NumIterations)))
+				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)))
+			}
+			writer.WriteString("\n")
+		}
+		slog.Debug("Finished writing to the buffer")
+		writer.Flush()
+		slog.Debug("Flushed the buffer")
+	} else {
+		log.Fatal(err)
+	}
+	defer f.Close()
+}
+
+func SaveCsvSnapshot(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int) {
+	currentTime := time.Now()
+	fileName := currentTime.Format(time.RFC3339Nano) + ".csv"
+	snapshotFilepath := filepath.Join("snapshots", fileName)
+	slog.Debug("Saving a csv snapshot", "skip", skip)
+	f, err := os.Create(snapshotFilepath)
+	writer := bufio.NewWriter(f)
+
+	if err == nil {
+		for i := 0; i < imageDimensions.X_size; i += skip {
+			for j := 0; j < imageDimensions.X_size; j += skip {
+				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)))
 			}
 			writer.WriteString("\n")
 		}
