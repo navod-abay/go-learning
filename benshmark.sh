@@ -37,6 +37,7 @@ time_data=$(/usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset "${boolFlags[@]}" 
 
 
 
-EOF )
+EOF
+)
 echo $time_data
 echo "Benchmarking finished"
