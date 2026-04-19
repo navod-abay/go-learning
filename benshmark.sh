@@ -37,3 +37,14 @@ time_data=$( { printf "\n\n\n\n\n" | /usr/bin/time -f "%e,%U,%S" ./build/mandelb
 
 echo $time_data
 echo "Benchmarking finished"
+
+read -r real_time user_time sys_time <<< "$time_data"
+
+cat >> benchmark.txt <<<EOF
+==============================================================================================================================
+name: $benchmark_name
+flags: "${boolFlags[@]}"
+total time: $real_time
+user time: $user_time
+system time: $sys_time
+EOF
