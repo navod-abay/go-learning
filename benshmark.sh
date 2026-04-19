@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 
 # Benchmark the mandelbrot set project and measure it's perf across various flags and options
+trap 'echo "Error occurred at line $LINENO. Last command: $BASH_COMMAND"' ERR
+
+set -ex
 
 now=$(date "+%Y-%m-%d_%H%M%S" )
 
@@ -9,19 +12,21 @@ read benchmark_name
 
 git checkout master
 
-git add *
+git add .
 
 if ! git diff --cached --quiet; then
     git commit -m "Benchmarking Commit: $now"
 fi
 
-go build -o build/mandelbortset .
+go build -o build/mandelbrotset .
 
 short_hash=$(git rev-parse --short HEAD)
 echo "Last Commit Hash: $short_hash"
 
 echo "List all boolean flags you want to test" 
 
-mapfile -t boolFlags
+mapfile -t boolFlags || true
 
-time_data=$(/usr/bin/time -f "%e,%U,%S" ./ mandelbroset-go "${boolFlags[@]}" 2>&1 > /dev/null )
+time_data=$(/usr/bin/time -f "%e,%U,%S" ./build/mandelbroset-go "${boolFlags[@]}" 2>&1 > /dev/null )
+echo $time_data
+echo "Benchmarking finished"
