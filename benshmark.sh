@@ -35,12 +35,11 @@ echo "Finished reading command line arguments"
 
 time_data=$({
     /usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset "${boolFlags[@]}" <<EOF
-
-
-
-
-
-
+\n
+\n
+\n
+\n
+\n
 EOF
 } 
 )
