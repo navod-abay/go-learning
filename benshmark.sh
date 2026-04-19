@@ -31,6 +31,8 @@ echo "List all boolean flags you want to test"
 
 mapfile -t boolFlags || true
 
+echo "Finished reading command line arguments"
+
 time_data=$({
     /usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset "${boolFlags[@]}" <<EOF
 
