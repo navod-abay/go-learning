@@ -33,11 +33,7 @@ mapfile -t boolFlags || true
 
 echo "Finished reading command line arguments"
 
-
-
-# Each \n is exactly what reader.ReadString('\n') is looking for.
-# We add one extra \n at the end to ensure the last read doesn't hit EOF.
-time_data=$(printf "\n\n\n\n\n\n" | /usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset "${boolFlags[@]}")
+time_data=$( { printf "\n\n\n\n\n" | /usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset "${boolFlags[@]}"; } 2>&1 >/dev/null )
 
 echo $time_data
 echo "Benchmarking finished"

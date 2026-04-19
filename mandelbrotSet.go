@@ -20,13 +20,10 @@ const (
 	base_resolution         = 128
 )
 
-func getIntWithDefaultValue(prompt string, _default int) int {
+func getIntWithDefaultValue(reader *bufio.Reader, prompt string, _default int) int {
 	isSuccess := false
 	var value int
 	for !isSuccess {
-
-		reader := bufio.NewReader(os.Stdin)
-
 		fmt.Printf("%s [%d]:", prompt, _default)
 		str, err := reader.ReadString('\n')
 		if err != nil {
@@ -52,12 +49,10 @@ func getIntWithDefaultValue(prompt string, _default int) int {
 	return value
 }
 
-func getFloatWithDefaultValue(prompt string, _default float64) float64 {
+func getFloatWithDefaultValue(reader *bufio.Reader, prompt string, _default float64) float64 {
 	isSuccess := false
 	var value float64
 	for !isSuccess {
-
-		reader := bufio.NewReader(os.Stdin)
 
 		fmt.Printf("%s [%f]:", prompt, _default)
 		str, err := reader.ReadString('\n')
@@ -139,13 +134,14 @@ func main() {
 	handler := slog.NewTextHandler(os.Stdout, opts)
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
+	reader := bufio.NewReader(os.Stdin)
 
 	var imageDimensions models.ImageDimensions
-	imageDimensions.X_low = getFloatWithDefaultValue("Enter the x axis lower limit", -2)
-	imageDimensions.X_high = getFloatWithDefaultValue("Enter the x axis upper limit", 2)
-	imageDimensions.Y_low = getFloatWithDefaultValue("Enter y axis lower limit", -2)
-	imageDimensions.Y_high = getFloatWithDefaultValue("Enter y axis upper limit", 2)
-	subdivision_level := getIntWithDefaultValue("Enter the subdivision level", 4)
+	imageDimensions.X_low = getFloatWithDefaultValue(reader, "Enter the x axis lower limit", -2)
+	imageDimensions.X_high = getFloatWithDefaultValue(reader, "Enter the x axis upper limit", 2)
+	imageDimensions.Y_low = getFloatWithDefaultValue(reader, "Enter y axis lower limit", -2)
+	imageDimensions.Y_high = getFloatWithDefaultValue(reader, "Enter y axis upper limit", 2)
+	subdivision_level := getIntWithDefaultValue(reader, "Enter the subdivision level", 4)
 	var pixel_size float64
 	var X_size, Y_size int
 	pixel_size, X_size, Y_size, imageDimensions = calculatePixelSize(imageDimensions, subdivision_level)
