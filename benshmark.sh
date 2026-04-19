@@ -2,7 +2,7 @@
 
 # Benchmark the mandelbrot set project and measure it's perf across various flags and options
 
-set -ex
+set -e
 
 if ! command -v /usr/bin/time &> /dev/null; then
     echo "Error: /usr/bin/time is not installed"
