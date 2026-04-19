@@ -33,7 +33,7 @@ mapfile -t boolFlags || true
 
 echo "Finished reading command line arguments"
 
-time_data=$( { /usr/bin/time -f "%e %U %S" ./build/mandelbrotset "${boolFlags[@]}" > /dev/null 2>&1 <<<EOF
+time_data=$( { /usr/bin/time -f "%e %U %S" ./build/mandelbrotset "${boolFlags[@]}" > /dev/null 2>&1 <<<'EOF'
 \n
 \n
 \n
