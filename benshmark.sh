@@ -42,7 +42,7 @@ time_data=$({
 
 
 EOF
-} 2>&1 >/dev/null
+} 
 )
 echo $time_data
 echo "Benchmarking finished"
