@@ -1,0 +1,7 @@
+==============================================================================================================================
+name: test 42
+commit hash: 30dc74f
+flags: ""
+total time: Finished
+user time: calculating
+system time: the initial pass without optimization
