@@ -33,8 +33,7 @@ mapfile -t boolFlags || true
 
 echo "Finished reading command line arguments"
 
-time_data=$(
-    /usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset  <<EOF
+cat <<EOF >input.txt
 \n
 \n
 \n
@@ -42,6 +41,8 @@ time_data=$(
 \n
 EOF
 
+time_data=$(
+    /usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset  < input.txt
 )
 echo $time_data
 echo "Benchmarking finished"
