@@ -40,7 +40,7 @@ echo "Benchmarking finished"
 
 read -r real_time user_time sys_time <<< "$time_data"
 
-cat  <<'EOF' >> benchmark.txt
+cat  <<EOF >> benchmark.txt
 ==============================================================================================================================
 name: $benchmark_name
 commit hash: $short_hash
