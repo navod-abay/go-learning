@@ -40,7 +40,7 @@ echo "Benchmarking finished"
 
 read -r real_time user_time sys_time <<< "$time_data"
 
-cat >> benchmark.txt <<<EOF
+cat  <<<'EOF' >> benchmark.txt
 ==============================================================================================================================
 name: $benchmark_name
 flags: "${boolFlags[@]}"
