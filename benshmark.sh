@@ -31,6 +31,6 @@ echo "List all boolean flags you want to test"
 
 mapfile -t boolFlags || true
 
-time_data=$(/usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset "${boolFlags[@]}" 2>&1 > /dev/null )
+time_data=$(/usr/bin/time -f "%e,%U,%S" ./build/mandelbrotset "${boolFlags[@]}"  )
 echo $time_data
 echo "Benchmarking finished"
