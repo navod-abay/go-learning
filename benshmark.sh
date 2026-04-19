@@ -1,9 +1,13 @@
 #! /usr/bin/env bash
 
 # Benchmark the mandelbrot set project and measure it's perf across various flags and options
-trap 'echo "Error occurred at line $LINENO. Last command: $BASH_COMMAND"' ERR
 
-set -ex
+set -e
+
+if ! command -v /usr/bin/time &> /dev/null; then
+    echo "Error: /usr/bin/time is not installed"
+    exit 1
+fi
 
 now=$(date "+%Y-%m-%d_%H%M%S" )
 
