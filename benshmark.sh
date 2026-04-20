@@ -61,9 +61,9 @@ for i in {1..4}; do
     total_user_time=$(echo "$total_user_time + $user_time" | bc)
     cat  <<EOF >> benchmark.txt
     run $i
-    total time: $real_time
-    user time: $user_time
-    system time: $sys_time
+    total time: $real_time \t cumulative time: $total_real_time
+    user time: $user_time \t cumulative time: $total_user_time
+    system time: $sys_time \t cumulative time: $total_sys_time
 
 
 EOF
