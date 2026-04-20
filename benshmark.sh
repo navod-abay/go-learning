@@ -69,9 +69,9 @@ for i in {1..4}; do
 EOF
 done
 
-average_real_time=$(echo "$total_real_time / 4" | bc)
-average_user_time=$(echo "$total_user_time / 4" | bc)
-average_sys_time=$(echo "$total_sys_time / 4" | bc)
+average_real_time=$(echo "$total_real_time / 4.0" | bc)
+average_user_time=$(echo "$total_user_time / 4.0" | bc)
+average_sys_time=$(echo "$total_sys_time / 4.0" | bc)
 cat >> benchmark.txt <<EOF
 ------- Results -----------
 average real time: $average_real_time
