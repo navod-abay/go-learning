@@ -88,6 +88,7 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 			}
 		}
 		slog.Debug("Finished iteration with skip", "skip", skip)
+		waitGroup.Add(1)
 		writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, &waitGroup)
 	}
 	waitGroup.Wait()
