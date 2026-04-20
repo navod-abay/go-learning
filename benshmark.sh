@@ -53,7 +53,7 @@ for i in {1..4}; do
     time_data=$( { printf "\n\n\n\n\n" | /usr/bin/time -f "%e %U %S" /bin/bash -c './build/mandelbrotset "${boolFlags[@]}"  1>/dev/null 2>&1;'; } 2>&1 )
 
     echo $time_data
-    echo "Benchmarking finished"
+    echo "run $i finished"
 
     read -r real_time user_time sys_time <<< "$time_data"
     total_real_time=$(echo "$total_real_time + $real_time" | bc)
@@ -76,3 +76,5 @@ average user time: $(echo "$total_user_time / 3" | bc)
 average sys time: $(echo "$total_sys_time / 3" | bc)
 
 EOF
+
+echo "Benchmarking finished"
