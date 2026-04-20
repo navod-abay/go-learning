@@ -89,7 +89,7 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 		}
 		slog.Debug("Finished iteration with skip", "skip", skip)
 		waitGroup.Add(1)
-		writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, &waitGroup)
+		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, &waitGroup)
 	}
 	waitGroup.Wait()
 	fmt.Println("Pixel Array initialization is over")
