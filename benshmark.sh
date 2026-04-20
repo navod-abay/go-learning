@@ -33,19 +33,41 @@ mapfile -t boolFlags || true
 
 echo "Finished reading command line arguments"
 
-time_data=$( { printf "\n\n\n\n\n" | /usr/bin/time -f "%e %U %S" /bin/bash -c './build/mandelbrotset "${boolFlags[@]}"  1>/dev/null 2>&1;'; } 2>&1 )
-
-echo $time_data
-echo "Benchmarking finished"
-
-read -r real_time user_time sys_time <<< "$time_data"
+total_real_time=0
+total_user_time=0
+total_sys_time=0
 
 cat  <<EOF >> benchmark.txt
 ==============================================================================================================================
 name: $benchmark_name
 commit hash: $short_hash
 flags: "${boolFlags[@]}"
-total time: $real_time
-user time: $user_time
-system time: $sys_time
+EOF
+
+for i in {1..4}; do
+    time_data=$( { printf "\n\n\n\n\n" | /usr/bin/time -f "%e %U %S" /bin/bash -c './build/mandelbrotset "${boolFlags[@]}"  1>/dev/null 2>&1;'; } 2>&1 )
+
+    echo $time_data
+    echo "Benchmarking finished"
+
+    read -r real_time user_time sys_time <<< "$time_data"
+    ((total_real_time += real_time))
+    ((total_user_time += user_time))
+    ((total_sys_time += sys_time))
+    cat  <<EOF >> benchmark.txt
+    run $i
+    total time: $real_time
+    user time: $user_time
+    system time: $sys_time
+
+
+EOF
+done
+
+cat >> benchmark.txt <<EOF
+------- Results -----------
+average real time: ((total_real_time / 3))
+average user time: ((total_user_time / 3))
+average sys time: ((total_sys_time / 3))
+
 EOF
