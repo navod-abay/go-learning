@@ -3,6 +3,7 @@ package solvers
 import (
 	"fmt"
 	"log/slog"
+	"sync"
 
 	"github.com/navod-abay/mandelbrotset-go/models"
 	"github.com/navod-abay/mandelbrotset-go/writers"
@@ -28,6 +29,7 @@ func getNumInclusionsInColWithSkips(pixelArray [][]models.ColorPixel, x int, y i
 }
 
 func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_level int, saveSnapShotsFlag bool) [][]models.ColorPixel {
+	var waitGroup sync.WaitGroup
 	pixelArray := make([][]models.ColorPixel, imageDimensions.X_size)
 	var init_skip int
 	if subdivision_level == 0 {
@@ -54,7 +56,8 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 	}
 	println("Finished calculating the initial pass without optimization")
 	if saveSnapShotsFlag {
-		writers.SaveCsvSnapshot(pixelArray, imageDimensions, init_skip)
+		waitGroup.Add(1)
+		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, init_skip, &waitGroup)
 	}
 	leftCol := 0
 	middleCol := 0
@@ -85,8 +88,9 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 			}
 		}
 		slog.Debug("Finished iteration with skip", "skip", skip)
-		writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip)
+		writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, &waitGroup)
 	}
+	waitGroup.Wait()
 	fmt.Println("Pixel Array initialization is over")
 
 	return pixelArray

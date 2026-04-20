@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/navod-abay/mandelbrotset-go/models"
@@ -61,7 +62,8 @@ func WriteToCSV(pixelArray [][]models.ColorPixel) {
 	defer f.Close()
 }
 
-func SaveCsvSnapshot(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int) {
+func SaveCsvSnapshot(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int, waitGroup *sync.WaitGroup) {
+	defer waitGroup.Done()
 	currentTime := time.Now()
 	fileName := currentTime.Format(time.RFC3339Nano) + ".csv"
 	snapshotFilepath := filepath.Join("snapshots", fileName)

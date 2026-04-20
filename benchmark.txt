@@ -5,3 +5,10 @@ flags: ""
 total time: Finished
 user time: calculating
 system time: the initial pass without optimization
+==============================================================================================================================
+name: baseline performance
+commit hash: 11dd240
+flags: ""
+total time: 173.79
+user time: 169.91
+system time: 2.22
