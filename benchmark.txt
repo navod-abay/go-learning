@@ -1,0 +1,33 @@
+==============================================================================================================================
+name: Baseline benchmark (Starting)
+commit hash: 6d79f40
+flags: ""
+    run 1
+    total time: 154.74 \t cumulative time: 154.74
+    user time: 144.61 \t cumulative time: 144.61
+    system time: 2.80 \t cumulative time: 2.80
+
+
+    run 2
+    total time: 150.91 \t cumulative time: 305.65
+    user time: 147.18 \t cumulative time: 291.79
+    system time: 2.31 \t cumulative time: 5.11
+
+
+    run 3
+    total time: 163.90 \t cumulative time: 469.55
+    user time: 152.73 \t cumulative time: 444.52
+    system time: 2.94 \t cumulative time: 8.05
+
+
+    run 4
+    total time: 159.76 \t cumulative time: 629.31
+    user time: 156.27 \t cumulative time: 600.79
+    system time: 2.43 \t cumulative time: 10.48
+
+
+------- Results -----------
+average real time: 157.3275
+average user time: 150.1975
+average sys time: 2.6200
+
