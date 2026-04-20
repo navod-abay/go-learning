@@ -9,6 +9,11 @@ if ! command -v /usr/bin/time &> /dev/null; then
     exit 1
 fi
 
+if ! command -v bc &> /dev/null; then
+    echo "Error: bc is require"
+    exit 1
+fi
+
 now=$(date "+%Y-%m-%d_%H%M%S" )
 
 echo "Enter the benchmark name"
@@ -51,9 +56,9 @@ for i in {1..4}; do
     echo "Benchmarking finished"
 
     read -r real_time user_time sys_time <<< "$time_data"
-    ((total_real_time += real_time))
-    ((total_user_time += user_time))
-    ((total_sys_time += sys_time))
+    total_real_time=$(echo "$total_real_time + $real_time" | bc)
+    total_sys_time=$(echo "$total_sys_time + $sys_time" | bc)
+    total_user_time=$(echo "$total_user_time + $user_time" | bc)
     cat  <<EOF >> benchmark.txt
     run $i
     total time: $real_time
@@ -66,8 +71,8 @@ done
 
 cat >> benchmark.txt <<EOF
 ------- Results -----------
-average real time: ((total_real_time / 3))
-average user time: ((total_user_time / 3))
-average sys time: ((total_sys_time / 3))
+average real time: $(echo "$total_real_time / 3" | bc)
+average user time: $(echo "$total_user_time / 3" | bc)
+average sys time: $(echo "$total_sys_time / 3" | bc)
 
 EOF
