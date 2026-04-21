@@ -32,3 +32,36 @@ average user time: 150.1975
 average sys time: 2.6200
 
 
+==============================================================================================================================
+name: asynchronours screenshots
+commit hash: 45288a7
+flags: ""
+    run 1
+    total time: 140.89 \t cumulative time: 140.89
+    user time: 138.66 \t cumulative time: 138.66
+    system time: 1.95 \t cumulative time: 1.95
+
+
+    run 2
+    total time: 144.51 \t cumulative time: 285.40
+    user time: 137.44 \t cumulative time: 276.10
+    system time: 2.15 \t cumulative time: 4.10
+
+
+    run 3
+    total time: 136.22 \t cumulative time: 421.62
+    user time: 131.23 \t cumulative time: 407.33
+    system time: 2.00 \t cumulative time: 6.10
+
+
+    run 4
+    total time: 138.12 \t cumulative time: 559.74
+    user time: 131.81 \t cumulative time: 539.14
+    system time: 2.14 \t cumulative time: 8.24
+
+
+------- Results -----------
+average real time: 139.9350
+average user time: 134.7850
+average sys time: 2.0600
+

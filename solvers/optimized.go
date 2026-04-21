@@ -39,7 +39,7 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 	}
 	X_val := imageDimensions.X_low
 	Y_val := imageDimensions.Y_low
-	slog.Debug("InitSkip", init_skip)
+	slog.Debug("InitSkip", "init_skip", init_skip)
 	for i := range pixelArray {
 		Y_val = imageDimensions.Y_low
 		pixelArray[i] = make([]models.ColorPixel, imageDimensions.Y_size)
@@ -78,13 +78,13 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 		middleCol = getNumInclusionsInColWithSkips(pixelArray, 0, skip, skip)
 		rightCol = getNumInclusionsInColWithSkips(pixelArray, skip, skip, skip)
 		// Handling the center of the arrays
-		for i := skip; i < imageDimensions.X_size; i += skip {
-			for j := skip; j < imageDimensions.Y_size; j += skip {
+		for i := skip; i < imageDimensions.X_size-skip; i += skip {
+			for j := skip; j < imageDimensions.Y_size-skip; j += skip {
 				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (10-leftCol-middleCol-rightCol)*100)
 
 				leftCol = middleCol
 				middleCol = rightCol
-				rightCol = 0
+				rightCol = getNumInclusionsInColWithSkips(pixelArray, i, j, skip)
 			}
 		}
 		slog.Debug("Finished iteration with skip", "skip", skip)
