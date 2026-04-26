@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/navod-abay/mandelbrotset-go/models"
 	"github.com/navod-abay/mandelbrotset-go/solvers"
@@ -123,6 +124,8 @@ func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_leve
 		Pixel_size: pixel_size,
 		X_size:     X_size,
 		Y_size:     Y_size,
+		X_start:    0,
+		Y_start:    0,
 	}
 	return pixel_size, X_size, Y_size, updateImageDimensions
 }
@@ -154,7 +157,8 @@ func main() {
 	colorFlag := flag.Bool("not-colorized", true, "Produces a two colored image when set to true")
 	csvWriteFlag := flag.Bool("write-csv", true, "Set to true to write the end result to a csv")
 	bmpWriteFlag := flag.Bool("write-bmp", true, "Set to true to create a bmp image file")
-	saveSnapShotsFlag := flag.Bool("save-snapshots", true, "Set to save intermediate results in the optimization process")
+	saveSnapShotsFlag := flag.Bool("save-snapshots", false, "Set to save intermediate results in the optimization process")
+	noParellalizationFlag := flag.Bool("no-parellalization", true, "Set to true to stop parallelization and run everything in one thread")
 
 	flag.Parse()
 	// Creating the image array
@@ -187,17 +191,50 @@ func main() {
 			}
 		}
 	} else {
-		pixelArray := solvers.OptimizedCalculation(imageDimensions, subdivision_level, *saveSnapShotsFlag)
-		if *csvWriteFlag {
-			writers.WriteToCSV(pixelArray)
-		}
-		if *bmpWriteFlag {
-			includedColor := make([]byte, 2)
-			binary.LittleEndian.PutUint16(includedColor, 0)
-			excludedColor := make([]byte, 2)
-			binary.LittleEndian.PutUint16(excludedColor, 255)
-			writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
+		if !*noParellalizationFlag {
+			fmt.Print("Running with no parallelization")
+			pixelArray := solvers.OptimizedCalculation(imageDimensions, subdivision_level, *saveSnapShotsFlag)
+			if *csvWriteFlag {
+				writers.WriteToCSV(pixelArray)
+			}
+			if *bmpWriteFlag {
+				includedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(includedColor, 0)
+				excludedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(excludedColor, 255)
+				writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
 
+			}
+		} else {
+			fmt.Print("Running with parallelization")
+			var waitGroup sync.WaitGroup
+			var init_skip int
+			if subdivision_level == 0 {
+				init_skip = 1
+			} else {
+				init_skip = int(1) << (subdivision_level / 2)
+			}
+			subImageDimensionsArray := solvers.GetSubImageDimensionsArrays(imageDimensions)
+			pixelArray := make([][]models.ColorPixel, imageDimensions.X_size)
+			for i := range imageDimensions.X_size {
+				pixelArray[i] = make([]models.ColorPixel, imageDimensions.Y_size)
+			}
+			for _, subImageDimension := range subImageDimensionsArray {
+				waitGroup.Add(1)
+				go solvers.SubImageOptimizedCalculation(subImageDimension, pixelArray, init_skip, &waitGroup, *saveSnapShotsFlag)
+			}
+			waitGroup.Wait()
+			if *csvWriteFlag {
+				writers.WriteToCSV(pixelArray)
+			}
+			if *bmpWriteFlag {
+				includedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(includedColor, 0)
+				excludedColor := make([]byte, 2)
+				binary.LittleEndian.PutUint16(excludedColor, 255)
+				writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
+
+			}
 		}
 
 	}
