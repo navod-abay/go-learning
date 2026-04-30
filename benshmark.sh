@@ -50,12 +50,12 @@ flags: "${boolFlags[@]}"
 EOF
 
 for i in {1..4}; do
-    time_data=$( { printf "\n\n\n\n\n" | /usr/bin/time -f "%e %U %S" /bin/bash -c './build/mandelbrotset "${boolFlags[@]}"  1>/dev/null 2>&1;'; } 2>&1 )
+    time_data=$( { printf "\n\n\n\n\n" | /usr/bin/time -f "%e %U %S %M" /bin/bash -c './build/mandelbrotset "${boolFlags[@]}"  1>/dev/null 2>&1;'; } 2>&1 )
 
     echo $time_data
     echo "run $i finished"
 
-    read -r real_time user_time sys_time <<< "$time_data"
+    read -r real_time user_time sys_time max_mem avg_mem <<< "$time_data"
     total_real_time=$(echo "$total_real_time + $real_time" | bc)
     total_sys_time=$(echo "$total_sys_time + $sys_time" | bc)
     total_user_time=$(echo "$total_user_time + $user_time" | bc)
@@ -64,6 +64,8 @@ for i in {1..4}; do
     total time: $real_time \t cumulative time: $total_real_time
     user time: $user_time \t cumulative time: $total_user_time
     system time: $sys_time \t cumulative time: $total_sys_time
+    maximum memory: $max_mem
+    average memory: $avg_mem
 
 
 EOF

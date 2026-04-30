@@ -232,6 +232,9 @@ func main() {
 				binary.LittleEndian.PutUint16(includedColor, 0)
 				excludedColor := make([]byte, 2)
 				binary.LittleEndian.PutUint16(excludedColor, 255)
+				fmt.Printf("length(pixelArray) : %v\t len(pixelArray[0]: %v\n)", len(pixelArray), len(pixelArray[0]))
+				fmt.Printf("imageDimension.X_Size : %v\t imageDimension.Y_Size: %v)\n", imageDimensions.X_size, imageDimensions.Y_size)
+				fmt.Printf("pixelArray[1024][1024] : %v\t pixelArray[1030][1030]: %v)\n", pixelArray[1024][1024], pixelArray[1030][1030])
 				writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
 
 			}

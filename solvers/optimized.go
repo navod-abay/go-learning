@@ -83,11 +83,46 @@ func GetSubImageDimensionsArrays(imageDimensions models.ImageDimensions) []model
 			newImageDimensions = append(newImageDimensions, newImageDimension)
 			num++
 		}
+		Y_val = imageDimensions.Y_low
 		X_val += float64(x_length) * imageDimensions.Pixel_size
 		x_pos += x_length
 	}
 	fmt.Printf(`Number of sub images: %v`, len(newImageDimensions))
 	return newImageDimensions
+}
+
+func RunOneSkipPass(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int, saveSnapShotsFlag bool, waitGroup *sync.WaitGroup) {
+	leftCol := 0
+	middleCol := 0
+	rightCol := 0
+	// Handling edges of the array without changing the maximum iterations according to the neighbors inclusion
+	for j := imageDimensions.Y_start + skip/2; j < imageDimensions.Y_size; j += skip {
+		pixelArray[imageDimensions.X_start][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_start][j].Number, maximum_iteration_depth)
+		pixelArray[imageDimensions.X_size-1][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_size-1][j].Number, 1000)
+	}
+	for i := imageDimensions.X_start + skip/2; i < imageDimensions.X_size; i += skip {
+		pixelArray[i][imageDimensions.Y_start].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.Y_start].Number, maximum_iteration_depth)
+		pixelArray[i][imageDimensions.Y_size-1].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.X_size-1].Number, 1000)
+	}
+	slog.Debug("Finished handling edges for iteration", "skip", skip)
+
+	middleCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start, skip, skip)
+	rightCol = getNumInclusionsInColWithSkips(pixelArray, skip, skip, skip)
+	// Handling the center of the arrays
+	for i := skip; i < imageDimensions.X_size-skip; i += skip {
+		for j := skip; j < imageDimensions.Y_size-skip; j += skip {
+			pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (10-leftCol-middleCol-rightCol)*100)
+
+			leftCol = middleCol
+			middleCol = rightCol
+			rightCol = getNumInclusionsInColWithSkips(pixelArray, i, j, skip)
+		}
+	}
+	slog.Debug("Finished iteration with skip", "skip", skip)
+	if saveSnapShotsFlag {
+		waitGroup.Add(1)
+		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, waitGroup)
+	}
 }
 
 func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_level int, saveSnapShotsFlag bool) [][]models.ColorPixel {
@@ -121,37 +156,9 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 		waitGroup.Add(1)
 		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, init_skip, &waitGroup)
 	}
-	leftCol := 0
-	middleCol := 0
-	rightCol := 0
+
 	for skip := init_skip / 2; skip >= 1; skip /= 2 {
-
-		// Handling edges of the array without changing the maximum iterations according to the neighbors inclusion
-		for j := imageDimensions.Y_start; j < imageDimensions.Y_size; j += skip {
-			pixelArray[imageDimensions.X_start][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_start][j].Number, maximum_iteration_depth)
-			pixelArray[imageDimensions.X_size-1][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_size-1][j].Number, 1000)
-		}
-		for i := imageDimensions.X_start; i < imageDimensions.X_size; i += skip {
-			pixelArray[i][imageDimensions.Y_start].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.Y_start].Number, maximum_iteration_depth)
-			pixelArray[i][imageDimensions.Y_size-1].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.X_size-1].Number, 1000)
-		}
-		slog.Debug("Finished handling edges for iteration", "skip", skip)
-
-		middleCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start, skip, skip)
-		rightCol = getNumInclusionsInColWithSkips(pixelArray, skip, skip, skip)
-		// Handling the center of the arrays
-		for i := skip; i < imageDimensions.X_size-skip; i += skip {
-			for j := skip; j < imageDimensions.Y_size-skip; j += skip {
-				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (10-leftCol-middleCol-rightCol)*100)
-
-				leftCol = middleCol
-				middleCol = rightCol
-				rightCol = getNumInclusionsInColWithSkips(pixelArray, i, j, skip)
-			}
-		}
-		slog.Debug("Finished iteration with skip", "skip", skip)
-		waitGroup.Add(1)
-		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, &waitGroup)
+		RunOneSkipPass(pixelArray, imageDimensions, skip, saveSnapShotsFlag, &waitGroup)
 	}
 	waitGroup.Wait()
 	fmt.Println("Pixel Array initialization is over")
@@ -169,9 +176,9 @@ func SubImageOptimizedCalculation(imageDimensions models.ImageDimensions, pixelA
 		Y_val = imageDimensions.Y_low
 		for j := 0; j < imageDimensions.Y_size-imageDimensions.Y_start; j++ {
 			cur_num := complex(X_val, Y_val)
-			pixelArray[i][j].Number = cur_num
+			pixelArray[i+imageDimensions.X_start][j+imageDimensions.Y_start].Number = cur_num
 			if i%init_skip == 0 && j%init_skip == 0 {
-				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(cur_num, maximum_iteration_depth)
+				pixelArray[i+imageDimensions.X_start][j+imageDimensions.Y_start].NumIterations = checkMandelbrotSetInclusion(cur_num, maximum_iteration_depth)
 				// slog.Debug("Checked complex num", "num", pixelArray[i][j].Number)
 			}
 			Y_val += imageDimensions.Pixel_size
@@ -199,11 +206,11 @@ func SubImageOptimizedCalculation(imageDimensions models.ImageDimensions, pixelA
 		}
 		slog.Debug("Finished handling edges for iteration", "skip", skip)
 
-		middleCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start, skip, skip)
-		rightCol = getNumInclusionsInColWithSkips(pixelArray, skip, skip, skip)
+		middleCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start, imageDimensions.Y_start+skip, skip)
+		rightCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start+skip, imageDimensions.Y_start+skip, skip)
 		// Handling the center of the arrays
-		for i := skip; i < imageDimensions.X_size-skip; i += skip {
-			for j := skip; j < imageDimensions.Y_size-skip; j += skip {
+		for i := skip + imageDimensions.X_start; i < imageDimensions.X_size-skip; i += skip {
+			for j := skip + imageDimensions.Y_start; j < imageDimensions.Y_size-skip; j += skip {
 				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (10-leftCol-middleCol-rightCol)*100)
 
 				leftCol = middleCol
@@ -212,8 +219,10 @@ func SubImageOptimizedCalculation(imageDimensions models.ImageDimensions, pixelA
 			}
 		}
 		slog.Debug("Finished iteration with skip", "skip", skip)
-		waitGroup.Add(1)
-		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, &waitGroup)
+		if saveSnapShotsFlag {
+			waitGroup.Add(1)
+			go writers.SaveCsvSnapshot(pixelArray, imageDimensions, skip, &waitGroup)
+		}
 	}
 	waitGroup.Wait()
 	return pixelArray

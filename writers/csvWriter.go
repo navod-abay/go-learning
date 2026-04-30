@@ -49,7 +49,7 @@ func WriteToCSV(pixelArray [][]models.ColorPixel) {
 	if err == nil {
 		for i := range pixelArray {
 			for j := range pixelArray[i] {
-				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)))
+				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)) + ",")
 			}
 			writer.WriteString("\n")
 		}
@@ -74,7 +74,7 @@ func SaveCsvSnapshot(pixelArray [][]models.ColorPixel, imageDimensions models.Im
 	if err == nil {
 		for i := 0; i < imageDimensions.X_size; i += skip {
 			for j := 0; j < imageDimensions.X_size; j += skip {
-				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)))
+				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)) + ",")
 			}
 			writer.WriteString("\n")
 		}
