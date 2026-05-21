@@ -18,7 +18,7 @@ import (
 
 const (
 	maximum_iteration_depth = 1000
-	base_resolution         = 512
+	base_resolution         = 1024
 )
 
 func getIntWithDefaultValue(reader *bufio.Reader, prompt string, _default int) int {
