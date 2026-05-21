@@ -65,3 +65,44 @@ average real time: 139.9350
 average user time: 134.7850
 average sys time: 2.0600
 
+==============================================================================================================================
+name: Parallelization is done.
+commit hash: 88c0196
+flags: ""
+    run 1
+    total time: 41.82 \t cumulative time: 41.82
+    user time: 67.25 \t cumulative time: 67.25
+    system time: 4.44 \t cumulative time: 4.44
+    maximum memory: 7772184
+    average memory: 
+
+
+    run 2
+    total time: 50.01 \t cumulative time: 91.83
+    user time: 87.23 \t cumulative time: 154.48
+    system time: 4.91 \t cumulative time: 9.35
+    maximum memory: 7773196
+    average memory: 
+
+
+    run 3
+    total time: 60.65 \t cumulative time: 152.48
+    user time: 92.07 \t cumulative time: 246.55
+    system time: 5.60 \t cumulative time: 14.95
+    maximum memory: 7773988
+    average memory: 
+
+
+    run 4
+    total time: 53.19 \t cumulative time: 205.67
+    user time: 87.30 \t cumulative time: 333.85
+    system time: 5.34 \t cumulative time: 20.29
+    maximum memory: 7672004
+    average memory: 
+
+
+------- Results -----------
+average real time: 51.4175
+average user time: 83.4625
+average sys time: 5.0725
+

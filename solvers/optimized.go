@@ -14,16 +14,51 @@ const (
 	maximum_iteration_depth = 1000
 )
 
-// Calculate the number of pixels in the column is in the calculated to be in the set. Doesn't check for boundaries
-func getNumInclusionsInColWithSkips(pixelArray [][]models.ColorPixel, x int, y int, skip int) int {
+func getHorizontalMiddleVerticalEdgePixel(pixelArray [][]models.ColorPixel, x int, y int, skip int) int {
 	num := 0
-	if pixelArray[x][y-skip].NumIterations == maximum_iteration_depth {
+	if pixelArray[x-skip][y].NumIterations == maximum_iteration_depth {
 		num++
 	}
 	if pixelArray[x][y].NumIterations == maximum_iteration_depth {
 		num++
 	}
-	if pixelArray[x][y+skip].NumIterations == maximum_iteration_depth {
+	if pixelArray[x+skip][y].NumIterations == maximum_iteration_depth {
+		num++
+	}
+	return num
+}
+
+func getHorizontalEdgeVerticalMiddlePixel(pixelArray [][]models.ColorPixel, x int, y int, skip int) int {
+	num := 0
+	if pixelArray[x-skip/2][y].NumIterations == maximum_iteration_depth {
+		num++
+	}
+	if pixelArray[x+skip/2][y].NumIterations == maximum_iteration_depth {
+		num++
+	}
+	return num
+}
+
+func getHorizontalMiddleVerticalMiddlePixelMemberNeighbors(pixelArray [][]models.ColorPixel, x int, y int, skip int, rightColumn int, leftCol int) int {
+	num := rightColumn + leftCol
+	if pixelArray[x][y-skip/2].NumIterations == maximum_iteration_depth {
+		num++
+	}
+	if pixelArray[x][y+skip/2].NumIterations == maximum_iteration_depth {
+		num++
+	}
+	return num
+}
+
+func getHorizontalMiddleVerticalMiddlePixel(pixelArray [][]models.ColorPixel, x int, y int, skip int) int {
+	num := 0
+	if pixelArray[x][y+skip/2].NumIterations == maximum_iteration_depth {
+		num++
+	}
+	if pixelArray[x][y].NumIterations == maximum_iteration_depth {
+		num++
+	}
+	if pixelArray[x][y-skip/2].NumIterations == maximum_iteration_depth {
 		num++
 	}
 	return num
@@ -92,32 +127,60 @@ func GetSubImageDimensionsArrays(imageDimensions models.ImageDimensions) []model
 }
 
 func RunOneSkipPass(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int, saveSnapShotsFlag bool, waitGroup *sync.WaitGroup) {
-	leftCol := 0
-	middleCol := 0
-	rightCol := 0
+	fmt.Printf("\n\nskip: %v\n", skip)
+	slog.Debug("Starting calculating edges", "imageDimensions", imageDimensions)
 	// Handling edges of the array without changing the maximum iterations according to the neighbors inclusion
 	for j := imageDimensions.Y_start + skip/2; j < imageDimensions.Y_size; j += skip {
 		pixelArray[imageDimensions.X_start][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_start][j].Number, maximum_iteration_depth)
-		pixelArray[imageDimensions.X_size-1][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_size-1][j].Number, 1000)
+		pixelArray[imageDimensions.X_size-1][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_size-1][j].Number, maximum_iteration_depth)
 	}
 	for i := imageDimensions.X_start + skip/2; i < imageDimensions.X_size; i += skip {
 		pixelArray[i][imageDimensions.Y_start].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.Y_start].Number, maximum_iteration_depth)
-		pixelArray[i][imageDimensions.Y_size-1].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.X_size-1].Number, 1000)
+		pixelArray[i][imageDimensions.Y_size-1].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.X_size-1].Number, maximum_iteration_depth)
 	}
-	slog.Debug("Finished handling edges for iteration", "skip", skip)
 
-	middleCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start, skip, skip)
-	rightCol = getNumInclusionsInColWithSkips(pixelArray, skip, skip, skip)
+	slog.Debug("Finished handling edges for iteration, staring horizontal middle vertical edge", "skip", skip)
+	// Handling horizontal middle vertical left edge pixels (8s in a 3 by 3 grid)
+	var leftCol int
+	var rightCol int
+	var middleCol int
 	// Handling the center of the arrays
-	for i := skip; i < imageDimensions.X_size-skip; i += skip {
-		for j := skip; j < imageDimensions.Y_size-skip; j += skip {
-			pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (10-leftCol-middleCol-rightCol)*100)
-
-			leftCol = middleCol
-			middleCol = rightCol
-			rightCol = getNumInclusionsInColWithSkips(pixelArray, i, j, skip)
+	for i := imageDimensions.X_start + skip; i < imageDimensions.X_size-skip; i += skip {
+		leftCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i, imageDimensions.Y_start, skip)
+		rightCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i, imageDimensions.Y_start+skip, skip)
+		for j := imageDimensions.Y_start + skip/2; j < imageDimensions.Y_size-2*skip; j += skip {
+			pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (7-leftCol-rightCol)*100)
+			leftCol = rightCol
+			rightCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i, j+(3*skip/2), skip)
 		}
 	}
+
+	slog.Debug("Starting Horizontal Edge Vertical Middle")
+	// Handling Horizontal Edge Vertical Middle pixels (4/6s in a grid)
+	for i := imageDimensions.X_start + skip/2; i < imageDimensions.X_size-skip; i += skip {
+		leftCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, i, imageDimensions.Y_start, skip)
+		middleCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, i, imageDimensions.Y_start+skip, skip)
+		rightCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, i, imageDimensions.Y_start+2*skip, skip)
+		for j := imageDimensions.Y_start + skip; j < imageDimensions.Y_size-skip; j += skip {
+			pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (7-leftCol-rightCol-middleCol)*100)
+			leftCol = middleCol
+			middleCol = rightCol
+			rightCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, i, j+skip, skip)
+		}
+	}
+
+	// Handling Horizontal middle and Verticle Middle pixels
+	slog.Debug("Starting Horizontal Middle Vertical Middle")
+	for i := imageDimensions.X_start + skip/2; i < imageDimensions.X_size-skip; i += skip {
+		for j := skip + imageDimensions.Y_start + skip/2; j < imageDimensions.Y_size-skip; j += skip {
+			pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (9-getHorizontalMiddleVerticalMiddlePixelMemberNeighbors(pixelArray, i, j, skip, rightCol, leftCol))*100)
+			leftCol = rightCol
+			rightCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i, j+skip, skip)
+		}
+		leftCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+skip/2, imageDimensions.Y_start+skip/2, skip)
+		rightCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+skip/2, imageDimensions.Y_start+skip, skip)
+	}
+
 	slog.Debug("Finished iteration with skip", "skip", skip)
 	if saveSnapShotsFlag {
 		waitGroup.Add(1)
@@ -157,7 +220,7 @@ func OptimizedCalculation(imageDimensions models.ImageDimensions, subdivision_le
 		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, init_skip, &waitGroup)
 	}
 
-	for skip := init_skip / 2; skip >= 1; skip /= 2 {
+	for skip := init_skip; skip > 1; skip /= 2 {
 		RunOneSkipPass(pixelArray, imageDimensions, skip, saveSnapShotsFlag, &waitGroup)
 	}
 	waitGroup.Wait()
@@ -190,34 +253,64 @@ func SubImageOptimizedCalculation(imageDimensions models.ImageDimensions, pixelA
 		waitGroup.Add(1)
 		go writers.SaveCsvSnapshot(pixelArray, imageDimensions, init_skip, &waitGroup)
 	}
-	leftCol := 0
-	middleCol := 0
-	rightCol := 0
-	for skip := init_skip / 2; skip >= 1; skip /= 2 {
+	for skip := init_skip; skip > 1; skip /= 2 {
 
 		// Handling edges of the array without changing the maximum iterations according to the neighbors inclusion
-		for j := imageDimensions.Y_start; j < imageDimensions.Y_size; j += skip {
+		for j := imageDimensions.Y_start + skip/2; j < imageDimensions.Y_size; j += skip {
 			pixelArray[imageDimensions.X_start][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_start][j].Number, maximum_iteration_depth)
-			pixelArray[imageDimensions.X_size-1][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_size-1][j].Number, 1000)
+			pixelArray[imageDimensions.X_size-1][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[imageDimensions.X_size-1][j].Number, maximum_iteration_depth)
 		}
-		for i := imageDimensions.X_start; i < imageDimensions.X_size; i += skip {
+		for i := imageDimensions.X_start / 2; i < imageDimensions.X_size; i += skip {
 			pixelArray[i][imageDimensions.Y_start].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.Y_start].Number, maximum_iteration_depth)
-			pixelArray[i][imageDimensions.Y_size-1].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.X_size-1].Number, 1000)
+			pixelArray[i][imageDimensions.Y_size-1].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][imageDimensions.X_size-1].Number, maximum_iteration_depth)
 		}
 		slog.Debug("Finished handling edges for iteration", "skip", skip)
 
-		middleCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start, imageDimensions.Y_start+skip, skip)
-		rightCol = getNumInclusionsInColWithSkips(pixelArray, imageDimensions.X_start+skip, imageDimensions.Y_start+skip, skip)
+		// Handling horizontal middle vertical left edge pixels
+		leftCol := getHorizontalMiddleVerticalEdgePixel(pixelArray, imageDimensions.X_start-skip/2, imageDimensions.Y_start+skip, skip)
+		rightCol := getHorizontalMiddleVerticalEdgePixel(pixelArray, imageDimensions.X_start+skip/2, imageDimensions.Y_start+skip, skip)
 		// Handling the center of the arrays
-		for i := skip + imageDimensions.X_start; i < imageDimensions.X_size-skip; i += skip {
+		for i := imageDimensions.X_start + skip/2; i < imageDimensions.X_size-skip; i += skip {
 			for j := skip + imageDimensions.Y_start; j < imageDimensions.Y_size-skip; j += skip {
-				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (10-leftCol-middleCol-rightCol)*100)
+				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (6-leftCol-rightCol)*100)
+				leftCol = rightCol
+				rightCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i, j, skip)
+			}
+			leftCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i-skip/2, imageDimensions.Y_start+skip, skip)
+			rightCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i+skip/2, imageDimensions.Y_start+skip, skip)
+		}
 
+		// Handling Horizontal Edge Vertical Middle pixels
+		leftCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start, imageDimensions.Y_start+skip/2, skip)
+		middleCol := getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+skip, imageDimensions.Y_start+skip/2, skip)
+		rightCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+2*skip, imageDimensions.Y_start+skip/2, skip)
+
+		for i := imageDimensions.X_start + skip; i < imageDimensions.X_size-skip; i += skip {
+			for j := skip + imageDimensions.Y_start + skip/2; j < imageDimensions.Y_size-skip; j += skip {
+				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (7-leftCol-rightCol-middleCol)*100)
 				leftCol = middleCol
 				middleCol = rightCol
-				rightCol = getNumInclusionsInColWithSkips(pixelArray, i, j, skip)
+				rightCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i, j+skip, skip)
 			}
+			leftCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start, imageDimensions.Y_start+skip/2, skip)
+			middleCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+skip, imageDimensions.Y_start+skip/2, skip)
+			rightCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+2*skip, imageDimensions.Y_start+skip/2, skip)
 		}
+
+		// Handling Horizontal middle and Verticle Middle pixels
+		leftCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, imageDimensions.X_start+skip/2, imageDimensions.Y_start, skip)
+		rightCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+2*skip, imageDimensions.Y_start+skip/2, skip)
+
+		for i := imageDimensions.X_start + skip; i < imageDimensions.X_size-skip; i += skip {
+			for j := skip + imageDimensions.Y_start + skip/2; j < imageDimensions.Y_size-skip; j += skip {
+				pixelArray[i][j].NumIterations = checkMandelbrotSetInclusion(pixelArray[i][j].Number, (9-getHorizontalMiddleVerticalMiddlePixelMemberNeighbors(pixelArray, i, j, skip, rightCol, leftCol))*100)
+				leftCol = rightCol
+				rightCol = getHorizontalMiddleVerticalEdgePixel(pixelArray, i, j+skip, skip)
+			}
+			leftCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+skip/2, imageDimensions.Y_start+skip/2, skip)
+			rightCol = getHorizontalEdgeVerticalMiddlePixel(pixelArray, imageDimensions.X_start+skip/2, imageDimensions.Y_start+skip, skip)
+		}
+
 		slog.Debug("Finished iteration with skip", "skip", skip)
 		if saveSnapShotsFlag {
 			waitGroup.Add(1)
