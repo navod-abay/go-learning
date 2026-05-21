@@ -158,7 +158,7 @@ func main() {
 	csvWriteFlag := flag.Bool("write-csv", true, "Set to true to write the end result to a csv")
 	bmpWriteFlag := flag.Bool("write-bmp", true, "Set to true to create a bmp image file")
 	saveSnapShotsFlag := flag.Bool("save-snapshots", false, "Set to save intermediate results in the optimization process")
-	noParellalizationFlag := flag.Bool("no-parellalization", false, "Set to true to stop parallelization and run everything in one thread")
+	noParellalizationFlag := flag.Bool("no-parellalization", true, "Set to true to stop parallelization and run everything in one thread")
 
 	flag.Parse()
 	fmt.Println(*noParellalizationFlag)
