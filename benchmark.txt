@@ -106,3 +106,44 @@ average real time: 51.4175
 average user time: 83.4625
 average sys time: 5.0725
 
+==============================================================================================================================
+name: Optimization done properly
+commit hash: c841d3a
+flags: ""
+    run 1
+    total time: 31.15 \t cumulative time: 31.15
+    user time: 45.90 \t cumulative time: 45.90
+    system time: 4.69 \t cumulative time: 4.69
+    maximum memory: 7774212
+    average memory: 
+
+
+    run 2
+    total time: 36.55 \t cumulative time: 67.70
+    user time: 54.05 \t cumulative time: 99.95
+    system time: 5.79 \t cumulative time: 10.48
+    maximum memory: 7773388
+    average memory: 
+
+
+    run 3
+    total time: 34.09 \t cumulative time: 101.79
+    user time: 53.00 \t cumulative time: 152.95
+    system time: 5.51 \t cumulative time: 15.99
+    maximum memory: 7772768
+    average memory: 
+
+
+    run 4
+    total time: 34.87 \t cumulative time: 136.66
+    user time: 53.64 \t cumulative time: 206.59
+    system time: 5.50 \t cumulative time: 21.49
+    maximum memory: 7771552
+    average memory: 
+
+
+------- Results -----------
+average real time: 34.1650
+average user time: 51.6475
+average sys time: 5.3725
+
