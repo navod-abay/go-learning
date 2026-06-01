@@ -1,22 +1,36 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"sync"
+
+	sharedproto "github.com/navod-abay/mandelbrotset-go/nodes/shared_proto"
 )
 
 const port string = ":8080"
 
-func performHandshake(conn net.Conn) {
-	message := "Hello from client 1"
-	conn.Write([]byte(message))
-}
-
 func handleConnection(conn net.Conn, id int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	fmt.Printf("Connected with Id: %v", id)
-	performHandshake(conn)
+	var buffer bytes.Buffer
+	sharedproto.WriteHeader(&buffer, sharedproto.HandShake)
+	conn.Write(buffer.Bytes())
+	fmt.Println("Handshake Request Sent")
+	buffer.Reset()
+	io.Copy(conn, &buffer)
+	bufferedReader := bufio.NewReader(conn)
+	msgType, err := sharedproto.ReadHeader(bufferedReader)
+	if err != nil {
+		return
+	}
+	if msgType != sharedproto.HandshakeResponse {
+		return
+	}
+
 }
 
 func main() {

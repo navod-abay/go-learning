@@ -2,9 +2,12 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"net"
+	"runtime"
+	"strconv"
 	"sync"
 
 	sharedproto "github.com/navod-abay/mandelbrotset-go/nodes/shared_proto"
@@ -12,21 +15,10 @@ import (
 
 const port string = ":8080"
 
-func handleStringMessage(conn net.Conn, err error, keepListening *bool) (string, error) {
-	buffer := make([]byte, 1024)
-	byteCount, err := conn.Read(buffer)
-	if err != nil {
-		fmt.Printf("Couldn't handle message in client, err: %v\n", err)
-	}
-	if byteCount > 0 {
-		return string(buffer), nil
-	}
-	return "", err
-}
-
 func handleConnection(conn net.Conn, lock *sync.Mutex) error {
 	lock.Lock() // only one master can push work into the client
 	defer lock.Unlock()
+	fmt.Println("Lock Acquired")
 	for true {
 		bufReader := bufio.NewReader(conn)
 		n, err := bufReader.Peek(1)
@@ -34,16 +26,29 @@ func handleConnection(conn net.Conn, lock *sync.Mutex) error {
 			continue // Blocking if the stream is empty
 		}
 		if len(n) > 0 {
-			parse_err := parseMessage(bufReader)
+			msgType, parse_err := parseMessage(bufReader)
 			if parse_err != nil { // Close TCP connection if fail to parse
 				return parse_err
+			}
+			switch msgType {
+			case sharedproto.HandShake:
+				sendClientHandshakeResponse(conn)
 			}
 		}
 	}
 	return nil
 }
 
-func parseMessage(buffer *bufio.Reader) error {
+func sendClientHandshakeResponse(conn net.Conn) {
+	var buff bytes.Buffer
+	sharedproto.WriteHeader(&buff, sharedproto.HandshakeResponse)
+	cpus := runtime.NumCPU()
+	buff.WriteString("\nNumCPU: " + strconv.Itoa(cpus) + "\n")
+	conn.Write(buff.Bytes())
+
+}
+
+func parseMessage(buffer *bufio.Reader) (sharedproto.RequestType, error) {
 	msgType, err := sharedproto.ReadHeader(buffer)
 	if err != nil {
 		switch {
@@ -51,7 +56,8 @@ func parseMessage(buffer *bufio.Reader) error {
 
 		}
 	}
-	return nil
+	fmt.Printf("message Type: %v", msgType)
+	return msgType, nil
 }
 
 func KeepListening(ln net.Listener, wg *sync.WaitGroup) {
@@ -66,7 +72,6 @@ func KeepListening(ln net.Listener, wg *sync.WaitGroup) {
 			continue
 		}
 		go handleConnection(conn, &lock)
-		handleStringMessage(conn, err, &keepConnection)
 	}
 }
 
