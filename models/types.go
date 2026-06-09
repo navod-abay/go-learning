@@ -1,15 +1,5 @@
 package models
 
-type NoColorPixel struct {
-	Number   complex128
-	Included bool
-}
-
-type ColorPixel struct {
-	Number        complex128
-	NumIterations uint16
-}
-
 type ImageDimensions struct {
 	X_high     float64 // Highest number in the x axis
 	X_low      float64 // Lowest number in the x axis

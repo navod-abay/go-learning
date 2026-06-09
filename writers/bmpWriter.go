@@ -69,7 +69,7 @@ func CalculateBMPHeaderDetails(imageDimensions models.ImageDimensions) BmpHeader
 	return details
 }
 
-func WriteToBmpFileNoColor(pixelArray [][]models.NoColorPixel, imageDimensions models.ImageDimensions, includedColor []byte, excludedColor []byte) {
+func WriteToBmpFileNoColor(pixelArray [][]bool, imageDimensions models.ImageDimensions, includedColor []byte, excludedColor []byte) {
 	fmt.Println("Writing output to bmp file (No Color)")
 	bmp_f, err := os.OpenFile("outputNoColor.bmp", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -79,7 +79,7 @@ func WriteToBmpFileNoColor(pixelArray [][]models.NoColorPixel, imageDimensions m
 		writer := bufio.NewWriter(bmp_f)
 		for i := range pixelArray[0] {
 			for j := range pixelArray {
-				if pixelArray[j][i].Included {
+				if pixelArray[j][i] {
 					writer.Write(includedColor)
 				} else {
 					writer.Write(excludedColor)
@@ -94,7 +94,7 @@ func WriteToBmpFileNoColor(pixelArray [][]models.NoColorPixel, imageDimensions m
 	defer bmp_f.Close()
 }
 
-func WriteToBmpFile(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, iterationThreshold int) {
+func WriteToBmpFile(pixelArray [][]uint16, imageDimensions models.ImageDimensions, iterationThreshold int) {
 	fmt.Println("Writing output to bmp file")
 	bmp_f, err := os.OpenFile("output.bmp", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -104,7 +104,7 @@ func WriteToBmpFile(pixelArray [][]models.ColorPixel, imageDimensions models.Ima
 		writer := bufio.NewWriter(bmp_f)
 		for i := range pixelArray[0] {
 			for j := range pixelArray {
-				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i].NumIterations))
+				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i]))
 			}
 		}
 		slog.Debug("Finished writing to the buffer")
@@ -115,7 +115,7 @@ func WriteToBmpFile(pixelArray [][]models.ColorPixel, imageDimensions models.Ima
 	defer bmp_f.Close()
 }
 
-func SaveSnapShotBMP(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int) error {
+func SaveSnapShotBMP(pixelArray [][]uint16, imageDimensions models.ImageDimensions, skip int) error {
 	currentTime := time.Now()
 	fileName := currentTime.Format(time.RFC3339) + ".bmp"
 	snapshotFilepath := filepath.Join("snapshots", fileName)
@@ -128,7 +128,7 @@ func SaveSnapShotBMP(pixelArray [][]models.ColorPixel, imageDimensions models.Im
 		writer := bufio.NewWriter(bmp_f)
 		for i := range pixelArray[0] {
 			for j := range pixelArray {
-				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i].NumIterations))
+				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i]))
 			}
 		}
 		slog.Debug("Finished writing to the buffer")

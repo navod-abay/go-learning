@@ -14,7 +14,7 @@ import (
 	"github.com/navod-abay/mandelbrotset-go/models"
 )
 
-func WriteToCSVNoColor(pixelArray [][]models.NoColorPixel) {
+func WriteToCSVNoColor(pixelArray [][]bool) {
 
 	fmt.Println("Writing output to a csv file(No Colors)")
 	f, err := os.OpenFile("outputNoColor.csv", os.O_WRONLY|os.O_CREATE, 0644)
@@ -23,7 +23,7 @@ func WriteToCSVNoColor(pixelArray [][]models.NoColorPixel) {
 	if err == nil {
 		for i := range pixelArray {
 			for j := range pixelArray[i] {
-				if pixelArray[i][j].Included {
+				if pixelArray[i][j] {
 					writer.WriteString("1, ")
 				} else {
 					writer.WriteString("0,")
@@ -40,7 +40,7 @@ func WriteToCSVNoColor(pixelArray [][]models.NoColorPixel) {
 	defer f.Close()
 }
 
-func WriteToCSV(pixelArray [][]models.ColorPixel) {
+func WriteToCSV(pixelArray [][]uint16) {
 
 	fmt.Println("Writing output to a csv file")
 	f, err := os.Create("output.csv")
@@ -49,7 +49,7 @@ func WriteToCSV(pixelArray [][]models.ColorPixel) {
 	if err == nil {
 		for i := range pixelArray {
 			for j := range pixelArray[i] {
-				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)) + ",")
+				writer.WriteString(strconv.Itoa(int(pixelArray[i][j])) + ",")
 			}
 			writer.WriteString("\n")
 		}
@@ -62,7 +62,7 @@ func WriteToCSV(pixelArray [][]models.ColorPixel) {
 	defer f.Close()
 }
 
-func SaveCsvSnapshot(pixelArray [][]models.ColorPixel, imageDimensions models.ImageDimensions, skip int, waitGroup *sync.WaitGroup) {
+func SaveCsvSnapshot(pixelArray [][]uint16, imageDimensions models.ImageDimensions, skip int, waitGroup *sync.WaitGroup) {
 	defer waitGroup.Done()
 	currentTime := time.Now()
 	fileName := currentTime.Format(time.RFC3339Nano) + ".csv"
@@ -74,7 +74,7 @@ func SaveCsvSnapshot(pixelArray [][]models.ColorPixel, imageDimensions models.Im
 	if err == nil {
 		for i := 0; i < imageDimensions.X_size; i += skip {
 			for j := 0; j < imageDimensions.X_size; j += skip {
-				writer.WriteString(strconv.Itoa(int(pixelArray[i][j].NumIterations)) + ",")
+				writer.WriteString(strconv.Itoa(int(pixelArray[i][j])) + ",")
 			}
 			writer.WriteString("\n")
 		}

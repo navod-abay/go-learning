@@ -216,9 +216,9 @@ func main() {
 				init_skip = int(1) << (subdivision_level / 2)
 			}
 			subImageDimensionsArray := solvers.GetSubImageDimensionsArrays(imageDimensions)
-			pixelArray := make([][]models.ColorPixel, imageDimensions.X_size)
+			pixelArray := make([][]uint16, imageDimensions.X_size)
 			for i := range imageDimensions.X_size {
-				pixelArray[i] = make([]models.ColorPixel, imageDimensions.Y_size)
+				pixelArray[i] = make([]uint16, imageDimensions.Y_size)
 			}
 			for _, subImageDimension := range subImageDimensionsArray {
 				waitGroup.Add(1)
