@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/navod-abay/mandelbrotset-go/colors"
@@ -94,7 +95,8 @@ func WriteToBmpFileNoColor(pixelArray [][]bool, imageDimensions models.ImageDime
 	defer bmp_f.Close()
 }
 
-func WriteToBmpFile(pixelArray [][]uint16, imageDimensions models.ImageDimensions, iterationThreshold int) {
+func WriteToBmpFile(pixelArray [][]uint16, imageDimensions models.ImageDimensions, iterationThreshold int, writeWaitgroup *sync.WaitGroup) {
+	defer writeWaitgroup.Done()
 	fmt.Println("Writing output to bmp file")
 	bmp_f, err := os.OpenFile("output.bmp", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {

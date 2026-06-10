@@ -9,6 +9,8 @@ type ImageDimensions struct {
 	Y_start    int
 	X_size     int
 	Y_size     int
+	Orig_x_low float64
+	Orig_y_low float64
 	Pixel_size float64
 }
 

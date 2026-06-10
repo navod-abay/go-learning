@@ -40,7 +40,8 @@ func WriteToCSVNoColor(pixelArray [][]bool) {
 	defer f.Close()
 }
 
-func WriteToCSV(pixelArray [][]uint16) {
+func WriteToCSV(pixelArray [][]uint16, writeWaitGroup *sync.WaitGroup) {
+	defer writeWaitGroup.Done()
 
 	fmt.Println("Writing output to a csv file")
 	f, err := os.Create("output.csv")

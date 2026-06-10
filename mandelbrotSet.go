@@ -105,7 +105,7 @@ func getOneIntInput(prompt string) int {
 	return i
 }
 
-func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_level int) (float64, int, int, models.ImageDimensions) {
+func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_level int) models.ImageDimensions {
 	X_range := imageDimensions.X_high - imageDimensions.X_low
 	Y_range := imageDimensions.Y_high - imageDimensions.Y_low
 	var pixel_size float64
@@ -127,16 +127,10 @@ func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_leve
 		X_start:    0,
 		Y_start:    0,
 	}
-	return pixel_size, X_size, Y_size, updateImageDimensions
+	return updateImageDimensions
 }
 
-func main() {
-	opts := &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}
-	handler := slog.NewTextHandler(os.Stdout, opts)
-	logger := slog.New(handler)
-	slog.SetDefault(logger)
+func GetImageDimensions() (models.ImageDimensions, int) {
 	reader := bufio.NewReader(os.Stdin)
 
 	var imageDimensions models.ImageDimensions
@@ -147,11 +141,22 @@ func main() {
 	subdivision_level := getIntWithDefaultValue(reader, "Enter the subdivision level", 4)
 	var pixel_size float64
 	var X_size, Y_size int
-	pixel_size, X_size, Y_size, imageDimensions = calculatePixelSize(imageDimensions, subdivision_level)
+	imageDimensions = calculatePixelSize(imageDimensions, subdivision_level)
 	fmt.Println("Calculated array size")
 	fmt.Printf("X axis size: %v\n", X_size)
 	fmt.Printf("Y axis size: %v\n", Y_size)
 	fmt.Printf("Pixel size: %v\n", pixel_size)
+	return imageDimensions, subdivision_level
+}
+
+func main() {
+	opts := &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+	imageDimensions, subdivision_level := GetImageDimensions()
 
 	optimizationFlag := flag.Bool("optimization", true, "Set to true to enable optimization")
 	colorFlag := flag.Bool("not-colorized", true, "Produces a two colored image when set to true")
@@ -163,18 +168,21 @@ func main() {
 	flag.Parse()
 	fmt.Println(*noParellalizationFlag)
 	// Creating the image array
+	var writeWaitGroup sync.WaitGroup
 	if !*optimizationFlag {
 		if *colorFlag {
 			pixelArray := solvers.ConstructAndCalculatePixelArray(imageDimensions)
 			if *csvWriteFlag {
-				writers.WriteToCSV(pixelArray)
+				writeWaitGroup.Add(1)
+				go writers.WriteToCSV(pixelArray, &writeWaitGroup)
 			}
 			if *bmpWriteFlag {
+				writeWaitGroup.Add(1)
 				includedColor := make([]byte, 2)
 				binary.LittleEndian.PutUint16(includedColor, 0)
 				excludedColor := make([]byte, 2)
 				binary.LittleEndian.PutUint16(excludedColor, 255)
-				writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
+				go writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth, &writeWaitGroup)
 
 			}
 		} else {
@@ -192,18 +200,22 @@ func main() {
 			}
 		}
 	} else {
+
 		if !*noParellalizationFlag {
 			fmt.Print("Running with no parallelization")
 			pixelArray := solvers.OptimizedCalculation(imageDimensions, subdivision_level, *saveSnapShotsFlag)
+
 			if *csvWriteFlag {
-				writers.WriteToCSV(pixelArray)
+				writeWaitGroup.Add(1)
+				go writers.WriteToCSV(pixelArray, &writeWaitGroup)
 			}
 			if *bmpWriteFlag {
+				writeWaitGroup.Add(1)
 				includedColor := make([]byte, 2)
 				binary.LittleEndian.PutUint16(includedColor, 0)
 				excludedColor := make([]byte, 2)
 				binary.LittleEndian.PutUint16(excludedColor, 255)
-				writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
+				go writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth, &writeWaitGroup)
 
 			}
 		} else {
@@ -226,22 +238,21 @@ func main() {
 			}
 			waitGroup.Wait()
 			if *csvWriteFlag {
-				writers.WriteToCSV(pixelArray)
+				writeWaitGroup.Add(1)
+				go writers.WriteToCSV(pixelArray, &writeWaitGroup)
 			}
 			if *bmpWriteFlag {
+				writeWaitGroup.Add(1)
 				includedColor := make([]byte, 2)
 				binary.LittleEndian.PutUint16(includedColor, 0)
 				excludedColor := make([]byte, 2)
 				binary.LittleEndian.PutUint16(excludedColor, 255)
-				fmt.Printf("length(pixelArray) : %v\t len(pixelArray[0]: %v\n)", len(pixelArray), len(pixelArray[0]))
-				fmt.Printf("imageDimension.X_Size : %v\t imageDimension.Y_Size: %v)\n", imageDimensions.X_size, imageDimensions.Y_size)
-				fmt.Printf("pixelArray[1024][1024] : %v\t pixelArray[1030][1030]: %v)\n", pixelArray[1024][1024], pixelArray[1030][1030])
-				writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth)
+				go writers.WriteToBmpFile(pixelArray, imageDimensions, maximum_iteration_depth, &writeWaitGroup)
 
 			}
 		}
-
 	}
+	writeWaitGroup.Wait()
 	fmt.Println("Calculation is over")
 
 }
