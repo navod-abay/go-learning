@@ -147,3 +147,44 @@ average real time: 34.1650
 average user time: 51.6475
 average sys time: 5.3725
 
+==============================================================================================================================
+name: offline algo and async final file writes
+commit hash: b3152fa
+flags: ""
+    run 1
+    total time: 30.19 \t cumulative time: 30.19
+    user time: 58.05 \t cumulative time: 58.05
+    system time: 1.68 \t cumulative time: 1.68
+    maximum memory: 1121884
+    average memory: 
+
+
+    run 2
+    total time: 33.55 \t cumulative time: 63.74
+    user time: 62.77 \t cumulative time: 120.82
+    system time: 2.10 \t cumulative time: 3.78
+    maximum memory: 1084732
+    average memory: 
+
+
+    run 3
+    total time: 31.93 \t cumulative time: 95.67
+    user time: 61.47 \t cumulative time: 182.29
+    system time: 1.79 \t cumulative time: 5.57
+    maximum memory: 1065508
+    average memory: 
+
+
+    run 4
+    total time: 31.94 \t cumulative time: 127.61
+    user time: 61.64 \t cumulative time: 243.93
+    system time: 1.73 \t cumulative time: 7.30
+    maximum memory: 1058912
+    average memory: 
+
+
+------- Results -----------
+average real time: 31.9025
+average user time: 60.9825
+average sys time: 1.8250
+
