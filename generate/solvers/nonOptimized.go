@@ -3,7 +3,7 @@ package solvers
 import (
 	"fmt"
 
-	"github.com/navod-abay/mandelbrotset-go/models"
+	"github.com/navod-abay/mandelbrotset-go/generate/models"
 )
 
 func ConstructAndCalculateNoColorPixelArray(imageDimensions models.ImageDimensions) [][]bool {

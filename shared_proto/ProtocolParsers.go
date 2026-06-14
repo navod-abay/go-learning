@@ -25,18 +25,21 @@ const (
 	Invalid RequestType = iota
 	HandShake
 	HandshakeResponse
+	DelegateWork
 )
 
 var requestName = map[RequestType]string{
 	HandShake:         "handshake",
 	Invalid:           "invalid",
 	HandshakeResponse: "handshakeResponse",
+	DelegateWork:      "delegateWork",
 }
 
 var reverseMap = map[string]RequestType{
 	"handshake":         HandShake,
 	"invalid":           Invalid,
 	"handshakeResponse": HandshakeResponse,
+	"delegateWork":      DelegateWork,
 }
 
 func (rt RequestType) String() string {
@@ -103,6 +106,12 @@ func ContentDeserialization(buff bytes.Buffer) (map[string]string, error) {
 	}
 	slog.Debug("Finished Deserializing Content", "content", content)
 	return content, nil
+}
+
+func ContentSerialization(buff *bytes.Buffer, content map[string]string) {
+	for key, value := range content {
+		buff.WriteString(key + ":" + value + "\n")
+	}
 }
 
 func ReadNumProcesses(buff *bufio.Reader) (int, error) {

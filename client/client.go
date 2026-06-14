@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	sharedproto "github.com/navod-abay/mandelbrotset-go/nodes/shared_proto"
+	sharedproto "github.com/navod-abay/mandelbrotset-go/shared_proto"
 )
 
 const port string = ":8080"

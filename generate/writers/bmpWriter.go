@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/navod-abay/mandelbrotset-go/colors"
-	"github.com/navod-abay/mandelbrotset-go/models"
+	"github.com/navod-abay/mandelbrotset-go/generate/colors"
+	"github.com/navod-abay/mandelbrotset-go/generate/models"
 )
 
 const (

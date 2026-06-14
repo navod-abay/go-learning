@@ -3,11 +3,10 @@ package solvers
 import (
 	"fmt"
 	"log/slog"
-	"runtime"
 	"sync"
 
-	"github.com/navod-abay/mandelbrotset-go/models"
-	"github.com/navod-abay/mandelbrotset-go/writers"
+	"github.com/navod-abay/mandelbrotset-go/generate/models"
+	"github.com/navod-abay/mandelbrotset-go/generate/writers"
 )
 
 const (
@@ -50,13 +49,12 @@ func getHorizontalMiddleVerticalMiddlePixelMemberNeighbors(pixelArray [][]uint16
 	return num
 }
 
-func GetSubImageDimensionsArrays(imageDimensions models.ImageDimensions) []models.ImageDimensions {
+func GetSubImageDimensionsArrays(imageDimensions models.ImageDimensions, processorGroupSize int) []models.ImageDimensions {
 	x_length := imageDimensions.X_size
 	y_length := imageDimensions.Y_size
 	slog.Debug("Starting subImageDimensions calculation", "x_length", x_length, "y_length", y_length)
 	x_subdivisions := 1
 	y_subdivisions := 1
-	processorGroupSize := runtime.NumCPU()
 	fmt.Printf("Number of processes: %v\n", processorGroupSize)
 	for processorGroupSize > 1 {
 		var longerAxisSubdivisions *int
@@ -85,22 +83,17 @@ func GetSubImageDimensionsArrays(imageDimensions models.ImageDimensions) []model
 	for i := 0; i < x_subdivisions; i++ {
 		y_pos := 0
 		for j := 0; j < y_subdivisions; j++ {
-			fmt.Printf("\n\nProcuess Num: %v\n", num)
 			newImageDimension := imageDimensions
 			newImageDimension.X_start = x_pos
 			newImageDimension.X_low = X_val
-			fmt.Printf("X_Start: %v\n", newImageDimension.X_start)
 			newImageDimension.Y_start = y_pos
 			newImageDimension.Y_low = Y_val
-			fmt.Printf("Y_Start: %v\n", newImageDimension.Y_start)
 			y_pos += y_length
 			Y_val += float64(y_length) * imageDimensions.Pixel_size
 			newImageDimension.X_size = x_pos + x_length
 			newImageDimension.X_high = X_val + float64(x_length)*imageDimensions.Pixel_size
-			fmt.Printf("X_Size: %v\n", newImageDimension.X_size)
 			newImageDimension.Y_size = y_pos
 			newImageDimension.Y_high = Y_val
-			fmt.Printf("Y_Size: %v\n", newImageDimension.Y_size)
 			newImageDimension.Orig_x_low = imageDimensions.X_low
 			newImageDimension.Orig_y_low = imageDimensions.Y_low
 			newImageDimensions = append(newImageDimensions, newImageDimension)
@@ -110,7 +103,7 @@ func GetSubImageDimensionsArrays(imageDimensions models.ImageDimensions) []model
 		X_val += float64(x_length) * imageDimensions.Pixel_size
 		x_pos += x_length
 	}
-	fmt.Printf(`Number of sub images: %v`, len(newImageDimensions))
+	fmt.Printf(`Number of sub images: %v\n`, len(newImageDimensions))
 	return newImageDimensions
 }
 

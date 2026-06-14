@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"bufio"
@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/navod-abay/mandelbrotset-go/models"
-	"github.com/navod-abay/mandelbrotset-go/solvers"
-	"github.com/navod-abay/mandelbrotset-go/writers"
+	"github.com/navod-abay/mandelbrotset-go/generate/models"
+	"github.com/navod-abay/mandelbrotset-go/generate/solvers"
+	"github.com/navod-abay/mandelbrotset-go/generate/writers"
 )
 
 const (
@@ -149,7 +150,7 @@ func GetImageDimensions() (models.ImageDimensions, int) {
 	return imageDimensions, subdivision_level
 }
 
-func main() {
+func run() {
 	opts := &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}
@@ -227,7 +228,9 @@ func main() {
 			} else {
 				init_skip = int(1) << (subdivision_level / 2)
 			}
-			subImageDimensionsArray := solvers.GetSubImageDimensionsArrays(imageDimensions)
+			processorGroupSize := runtime.NumCPU()
+
+			subImageDimensionsArray := solvers.GetSubImageDimensionsArrays(imageDimensions, processorGroupSize)
 			pixelArray := make([][]uint16, imageDimensions.X_size)
 			for i := range imageDimensions.X_size {
 				pixelArray[i] = make([]uint16, imageDimensions.Y_size)

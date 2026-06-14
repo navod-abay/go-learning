@@ -1,3 +1,3 @@
-module github.com/navod-abay/mandelbrotset-go/nodes/master
+module github.com/navod-abay/mandelbrotset-go/master
 
 go 1.26.3

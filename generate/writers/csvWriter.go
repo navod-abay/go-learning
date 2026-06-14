@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/navod-abay/mandelbrotset-go/models"
+	"github.com/navod-abay/mandelbrotset-go/generate/models"
 )
 
 func WriteToCSVNoColor(pixelArray [][]bool) {
