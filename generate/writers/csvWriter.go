@@ -63,7 +63,7 @@ func WriteToCSV(pixelArray [][]uint16, writeWaitGroup *sync.WaitGroup) {
 	defer f.Close()
 }
 
-func SaveCsvSnapshot(pixelArray [][]uint16, imageDimensions models.ImageDimensions, skip int, waitGroup *sync.WaitGroup) {
+func SaveCsvSnapshot(pixelArray [][]uint16, imageDimensions models.ImageDimensions, skip int32, waitGroup *sync.WaitGroup) {
 	defer waitGroup.Done()
 	currentTime := time.Now()
 	fileName := currentTime.Format(time.RFC3339Nano) + ".csv"
@@ -73,8 +73,8 @@ func SaveCsvSnapshot(pixelArray [][]uint16, imageDimensions models.ImageDimensio
 	writer := bufio.NewWriter(f)
 
 	if err == nil {
-		for i := 0; i < imageDimensions.X_size; i += skip {
-			for j := 0; j < imageDimensions.X_size; j += skip {
+		for i := int32(0); i < imageDimensions.X_size; i += skip {
+			for j := int32(0); j < imageDimensions.X_size; j += skip {
 				writer.WriteString(strconv.Itoa(int(pixelArray[i][j])) + ",")
 			}
 			writer.WriteString("\n")

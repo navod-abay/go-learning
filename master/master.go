@@ -74,12 +74,17 @@ func sendWorkRequest(id string, conn net.Conn, subImages []models.ImageDimension
 	}
 	byteBuffer := new(bytes.Buffer)
 	sharedproto.ContentSerialization(byteBuffer, content)
-	byteBuffer.WriteString("\nsubImages:")
-	err := binary.Write(byteBuffer, binary.LittleEndian, subImages)
-	if err != nil {
-		fmt.Println(err)
+	for i, subimage := range subImages {
+		key := "subimage_" + strconv.Itoa(i) + ":"
+		byteBuffer.WriteString(key)
+		err := binary.Write(byteBuffer, binary.LittleEndian, subimage)
+		byteBuffer.WriteString("\n")
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 	}
-	err = sharedproto.SendMessage(buffWriter, byteBuffer.Bytes(), "delegateWork")
+	err := sharedproto.SendMessage(buffWriter, byteBuffer.Bytes(), "delegateWork")
 	if err != nil {
 		fmt.Println(err)
 	}

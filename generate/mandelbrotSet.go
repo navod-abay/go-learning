@@ -115,8 +115,8 @@ func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_leve
 	} else {
 		pixel_size = float64(Y_range) / float64(base_resolution*(int(1)<<subdivision_level))
 	}
-	X_size := int(float64(X_range) / pixel_size)
-	Y_size := int(float64(Y_range) / pixel_size)
+	X_size := int32(float64(X_range) / pixel_size)
+	Y_size := int32(float64(Y_range) / pixel_size)
 	updateImageDimensions := models.ImageDimensions{
 		X_low:      imageDimensions.X_low,
 		X_high:     imageDimensions.X_low + pixel_size*float64(X_size),
@@ -222,11 +222,11 @@ func run() {
 		} else {
 			fmt.Print("Running with parallelization")
 			var waitGroup sync.WaitGroup // Wait group to wait for parallelized sub images
-			var init_skip int
+			var init_skip int32
 			if subdivision_level == 0 {
 				init_skip = 1
 			} else {
-				init_skip = int(1) << (subdivision_level / 2)
+				init_skip = int32(1) << (subdivision_level / 2)
 			}
 			processorGroupSize := runtime.NumCPU()
 

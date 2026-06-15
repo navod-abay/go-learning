@@ -27,7 +27,7 @@ func TestMandelbrotSetZero(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := checkMandelbrotSetInclusion(tt.num, tt.max_iter)
+			actual := solvers.checkMandelbrotSetInclusion(tt.num, tt.max_iter)
 			if actual != tt.expected {
 				t.Errorf("checkMandelbrotSet: Expencted %v, got %v", tt.expected, actual)
 			}
