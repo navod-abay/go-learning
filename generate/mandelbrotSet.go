@@ -1,4 +1,4 @@
-package engine
+package main
 
 import (
 	"bufio"
@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	maximum_iteration_depth = 1000
-	base_resolution         = 1024
+	maximum_iteration_depth = 100
+	base_resolution         = 128
 )
 
 func getIntWithDefaultValue(reader *bufio.Reader, prompt string, _default int) int {
@@ -127,6 +127,10 @@ func calculatePixelSize(imageDimensions models.ImageDimensions, subdivision_leve
 		Y_size:     Y_size,
 		X_start:    0,
 		Y_start:    0,
+		HueLower:   imageDimensions.HueLower,
+		HueUpper:   imageDimensions.HueUpper,
+		Sat:        imageDimensions.Sat,
+		Value:      imageDimensions.Value,
 	}
 	return updateImageDimensions
 }
@@ -140,9 +144,14 @@ func GetImageDimensions() (models.ImageDimensions, int) {
 	imageDimensions.Y_low = getFloatWithDefaultValue(reader, "Enter y axis lower limit", -2)
 	imageDimensions.Y_high = getFloatWithDefaultValue(reader, "Enter y axis upper limit", 2)
 	subdivision_level := getIntWithDefaultValue(reader, "Enter the subdivision level", 4)
+	imageDimensions.HueLower = int32(getIntWithDefaultValue(reader, "Enter the Hue lower bound", 0))
+	imageDimensions.HueUpper = int32(getIntWithDefaultValue(reader, "Enter the Hue upper bound", 360))
+	imageDimensions.Sat = int32(getFloatWithDefaultValue(reader, "Enter Saturation", 30))
+	imageDimensions.Value = int32(getFloatWithDefaultValue(reader, "Enter value", 40))
 	var pixel_size float64
 	var X_size, Y_size int
 	imageDimensions = calculatePixelSize(imageDimensions, subdivision_level)
+	fmt.Printf("HU: %v,HL: %v, S: %v, V: %v\n", imageDimensions.HueUpper, imageDimensions.HueLower, imageDimensions.Sat, imageDimensions.Value)
 	fmt.Println("Calculated array size")
 	fmt.Printf("X axis size: %v\n", X_size)
 	fmt.Printf("Y axis size: %v\n", Y_size)
@@ -150,7 +159,7 @@ func GetImageDimensions() (models.ImageDimensions, int) {
 	return imageDimensions, subdivision_level
 }
 
-func run() {
+func main() {
 	opts := &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}

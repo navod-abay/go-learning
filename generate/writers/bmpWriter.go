@@ -106,7 +106,7 @@ func WriteToBmpFile(pixelArray [][]uint16, imageDimensions models.ImageDimension
 		writer := bufio.NewWriter(bmp_f)
 		for i := range pixelArray[0] {
 			for j := range pixelArray {
-				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i]))
+				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i], imageDimensions.HueUpper, imageDimensions.HueLower, imageDimensions.Sat, imageDimensions.Value))
 			}
 		}
 		slog.Debug("Finished writing to the buffer")
@@ -130,7 +130,7 @@ func SaveSnapShotBMP(pixelArray [][]uint16, imageDimensions models.ImageDimensio
 		writer := bufio.NewWriter(bmp_f)
 		for i := range pixelArray[0] {
 			for j := range pixelArray {
-				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i]))
+				writer.Write(colors.MapIterationsToUint16Colors(pixelArray[j][i], imageDimensions.HueUpper, imageDimensions.HueLower, imageDimensions.Sat, imageDimensions.Value))
 			}
 		}
 		slog.Debug("Finished writing to the buffer")

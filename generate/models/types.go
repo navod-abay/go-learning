@@ -12,6 +12,10 @@ type ImageDimensions struct {
 	Orig_x_low float64
 	Orig_y_low float64
 	Pixel_size float64
+	HueUpper   int32
+	HueLower   int32
+	Sat        int32
+	Value      int32
 }
 
 type Index struct {
