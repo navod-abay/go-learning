@@ -1,0 +1,190 @@
+==============================================================================================================================
+name: Baseline benchmark (Starting)
+commit hash: 6d79f40
+flags: ""
+    run 1
+    total time: 154.74 \t cumulative time: 154.74
+    user time: 144.61 \t cumulative time: 144.61
+    system time: 2.80 \t cumulative time: 2.80
+
+
+    run 2
+    total time: 150.91 \t cumulative time: 305.65
+    user time: 147.18 \t cumulative time: 291.79
+    system time: 2.31 \t cumulative time: 5.11
+
+
+    run 3
+    total time: 163.90 \t cumulative time: 469.55
+    user time: 152.73 \t cumulative time: 444.52
+    system time: 2.94 \t cumulative time: 8.05
+
+
+    run 4
+    total time: 159.76 \t cumulative time: 629.31
+    user time: 156.27 \t cumulative time: 600.79
+    system time: 2.43 \t cumulative time: 10.48
+
+
+------- Results -----------
+average real time: 157.3275
+average user time: 150.1975
+average sys time: 2.6200
+
+
+==============================================================================================================================
+name: asynchronours screenshots
+commit hash: 45288a7
+flags: ""
+    run 1
+    total time: 140.89 \t cumulative time: 140.89
+    user time: 138.66 \t cumulative time: 138.66
+    system time: 1.95 \t cumulative time: 1.95
+
+
+    run 2
+    total time: 144.51 \t cumulative time: 285.40
+    user time: 137.44 \t cumulative time: 276.10
+    system time: 2.15 \t cumulative time: 4.10
+
+
+    run 3
+    total time: 136.22 \t cumulative time: 421.62
+    user time: 131.23 \t cumulative time: 407.33
+    system time: 2.00 \t cumulative time: 6.10
+
+
+    run 4
+    total time: 138.12 \t cumulative time: 559.74
+    user time: 131.81 \t cumulative time: 539.14
+    system time: 2.14 \t cumulative time: 8.24
+
+
+------- Results -----------
+average real time: 139.9350
+average user time: 134.7850
+average sys time: 2.0600
+
+==============================================================================================================================
+name: Parallelization is done.
+commit hash: 88c0196
+flags: ""
+    run 1
+    total time: 41.82 \t cumulative time: 41.82
+    user time: 67.25 \t cumulative time: 67.25
+    system time: 4.44 \t cumulative time: 4.44
+    maximum memory: 7772184
+    average memory: 
+
+
+    run 2
+    total time: 50.01 \t cumulative time: 91.83
+    user time: 87.23 \t cumulative time: 154.48
+    system time: 4.91 \t cumulative time: 9.35
+    maximum memory: 7773196
+    average memory: 
+
+
+    run 3
+    total time: 60.65 \t cumulative time: 152.48
+    user time: 92.07 \t cumulative time: 246.55
+    system time: 5.60 \t cumulative time: 14.95
+    maximum memory: 7773988
+    average memory: 
+
+
+    run 4
+    total time: 53.19 \t cumulative time: 205.67
+    user time: 87.30 \t cumulative time: 333.85
+    system time: 5.34 \t cumulative time: 20.29
+    maximum memory: 7672004
+    average memory: 
+
+
+------- Results -----------
+average real time: 51.4175
+average user time: 83.4625
+average sys time: 5.0725
+
+==============================================================================================================================
+name: Optimization done properly
+commit hash: c841d3a
+flags: ""
+    run 1
+    total time: 31.15 \t cumulative time: 31.15
+    user time: 45.90 \t cumulative time: 45.90
+    system time: 4.69 \t cumulative time: 4.69
+    maximum memory: 7774212
+    average memory: 
+
+
+    run 2
+    total time: 36.55 \t cumulative time: 67.70
+    user time: 54.05 \t cumulative time: 99.95
+    system time: 5.79 \t cumulative time: 10.48
+    maximum memory: 7773388
+    average memory: 
+
+
+    run 3
+    total time: 34.09 \t cumulative time: 101.79
+    user time: 53.00 \t cumulative time: 152.95
+    system time: 5.51 \t cumulative time: 15.99
+    maximum memory: 7772768
+    average memory: 
+
+
+    run 4
+    total time: 34.87 \t cumulative time: 136.66
+    user time: 53.64 \t cumulative time: 206.59
+    system time: 5.50 \t cumulative time: 21.49
+    maximum memory: 7771552
+    average memory: 
+
+
+------- Results -----------
+average real time: 34.1650
+average user time: 51.6475
+average sys time: 5.3725
+
+==============================================================================================================================
+name: offline algo and async final file writes
+commit hash: b3152fa
+flags: ""
+    run 1
+    total time: 30.19 \t cumulative time: 30.19
+    user time: 58.05 \t cumulative time: 58.05
+    system time: 1.68 \t cumulative time: 1.68
+    maximum memory: 1121884
+    average memory: 
+
+
+    run 2
+    total time: 33.55 \t cumulative time: 63.74
+    user time: 62.77 \t cumulative time: 120.82
+    system time: 2.10 \t cumulative time: 3.78
+    maximum memory: 1084732
+    average memory: 
+
+
+    run 3
+    total time: 31.93 \t cumulative time: 95.67
+    user time: 61.47 \t cumulative time: 182.29
+    system time: 1.79 \t cumulative time: 5.57
+    maximum memory: 1065508
+    average memory: 
+
+
+    run 4
+    total time: 31.94 \t cumulative time: 127.61
+    user time: 61.64 \t cumulative time: 243.93
+    system time: 1.73 \t cumulative time: 7.30
+    maximum memory: 1058912
+    average memory: 
+
+
+------- Results -----------
+average real time: 31.9025
+average user time: 60.9825
+average sys time: 1.8250
+

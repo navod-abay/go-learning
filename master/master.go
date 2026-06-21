@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"sync"
 
-	generate "github.com/navod-abay/mandelbrotset-go/generate"
-	"github.com/navod-abay/mandelbrotset-go/generate/models"
-	"github.com/navod-abay/mandelbrotset-go/generate/solvers"
+	generate "github.com/navod-abay/mandelbrotset-go/core"
+	"github.com/navod-abay/mandelbrotset-go/core/models"
+	"github.com/navod-abay/mandelbrotset-go/core/solvers"
 	sharedproto "github.com/navod-abay/mandelbrotset-go/shared_proto"
 )
 
