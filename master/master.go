@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/rpc"
 	"os"
 	"strconv"
 	"sync"
@@ -128,6 +129,7 @@ func main() {
 	IPs := []string{"127.0.0.1"}
 	var wg sync.WaitGroup
 	c := make(chan ClientIdentifier, 5)
+	slog.Debug("Flags Parsed", "isCustomProto", isCustomProto)
 	if isCustomProto {
 
 		for id, ip := range IPs {
@@ -156,5 +158,33 @@ func main() {
 		subImageDimensionsArray := solvers.GetSubImageDimensionsArrays(imageDimensions, totalProcessors)
 		delegate(subImageDimensionsArray, subdivision_levels, identities)
 		fmt.Printf("Exiting master node\n")
+	} else {
+		slog.Debug("Running in RPC mode")
+		for _, ip := range IPs {
+			fmt.Printf("Trying to connect(RPC) to IP: %v\n", ip+port)
+			client, err := rpc.Dial("tcp", ip+port)
+			if err != nil {
+				fmt.Printf("Couldn't connect to IP: %v, err: %v\n", ip, err)
+				continue
+			}
+			wg.Add(1)
+			fmt.Printf("Successfully dialed ip: %v\n", ip)
+			go RpcHandshake(client, &wg, c)
+			wg.Wait()
+			close(c)
+			identities := map[string]ClientIdentifier{}
+			for identity := range c {
+				identities[identity.id] = identity
+			}
+			fmt.Println("Ready slaves:", identities)
+			imageDimensions, subdivision_levels := generate.GetImageDimensions()
+			totalProcessors := 0
+			for _, client := range identities {
+				totalProcessors += client.numProcesses
+			}
+			subImageDimensionsArray := solvers.GetSubImageDimensionsArrays(imageDimensions, totalProcessors)
+			delegate(subImageDimensionsArray, subdivision_levels, identities)
+			fmt.Printf("Exiting master node\n")
+		}
 	}
 }

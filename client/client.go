@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"log/slog"
 	"net"
+	"net/rpc"
 	"os"
 	"runtime"
 	"strconv"
@@ -52,10 +54,11 @@ func sendClientHandshakeResponse(buffWriter *bufio.Writer) error {
 	return err
 }
 
-func KeepListening(ln net.Listener, wg *sync.WaitGroup) {
+func KeepListening(ln net.Listener, wg *sync.WaitGroup, isCustomProto bool) {
 	defer wg.Done()
 	var lock sync.Mutex
 	fmt.Printf("Started Listening on port: %v\n", port)
+	slog.Debug("KeepListening", "isCustomProto", isCustomProto)
 	keepConnection := true
 	for keepConnection {
 		conn, err := ln.Accept() // Accept a connection
@@ -63,26 +66,48 @@ func KeepListening(ln net.Listener, wg *sync.WaitGroup) {
 			fmt.Printf("Error accepting TCP connection, err: %v ", err)
 			continue
 		}
-		go handleConnection(conn, &lock)
+		if isCustomProto {
+			go handleConnection(conn, &lock)
+		} else {
+			slog.Debug("Starting RPC server")
+			rpc.ServeConn(conn)
+			slog.Debug("Finished handling RPC")
+		}
 	}
 }
 
 func main() {
-	ln, err := net.Listen("tcp", ":8080")
 	var opts = &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}
-
 	var handler = slog.NewTextHandler(os.Stdin, opts)
-
 	var logger = slog.New(handler)
-
 	slog.SetDefault(logger)
-	var wg = new(sync.WaitGroup)
-	if err != nil {
-		fmt.Printf("Can't connect to the client. Error: %v", err)
+
+	isCustomProto := true
+	flag.Func("protocolType", "Spcify whether to use RPC or the custom protocol for messaging", func(val string) error {
+		slog.Debug("Parsing flags", "isCustomProto", val)
+		if val != "Custom" {
+			if val != "RPC" {
+				return fmt.Errorf("Invalid Protocol Name. Only accepts 'RPC' or 'Custom'. Defaulting to custom protocol")
+			}
+			isCustomProto = false
+		}
+		return nil
+	})
+	flag.Parse()
+	if !isCustomProto {
+		server := new(sharedproto.RpcServer)
+		rpc.Register(server)
 	}
+
+	ln, err := net.Listen("tcp", ":8080")
+
+	if err != nil {
+		fmt.Printf("Couldn't start listening on port :8080. Error: %v", err)
+	}
+	var wg = new(sync.WaitGroup)
 	wg.Add(1)
-	go KeepListening(ln, wg)
+	go KeepListening(ln, wg, isCustomProto)
 	wg.Wait()
 }
