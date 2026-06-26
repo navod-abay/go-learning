@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"net/rpc"
 	"os"
 	"runtime"
 	"strconv"
@@ -54,11 +53,10 @@ func sendClientHandshakeResponse(buffWriter *bufio.Writer) error {
 	return err
 }
 
-func KeepListening(ln net.Listener, wg *sync.WaitGroup, isCustomProto bool) {
+func KeepListening(ln net.Listener, wg *sync.WaitGroup) {
 	defer wg.Done()
 	var lock sync.Mutex
 	fmt.Printf("Started Listening on port: %v\n", port)
-	slog.Debug("KeepListening", "isCustomProto", isCustomProto)
 	keepConnection := true
 	for keepConnection {
 		conn, err := ln.Accept() // Accept a connection
@@ -66,13 +64,8 @@ func KeepListening(ln net.Listener, wg *sync.WaitGroup, isCustomProto bool) {
 			fmt.Printf("Error accepting TCP connection, err: %v ", err)
 			continue
 		}
-		if isCustomProto {
-			go handleConnection(conn, &lock)
-		} else {
-			slog.Debug("Starting RPC server")
-			rpc.ServeConn(conn)
-			slog.Debug("Finished handling RPC")
-		}
+		go handleConnection(conn, &lock)
+
 	}
 }
 
@@ -97,17 +90,18 @@ func main() {
 	})
 	flag.Parse()
 	if !isCustomProto {
-		server := new(sharedproto.RpcServer)
-		rpc.Register(server)
+		rpcClientFlow()
+
+	} else {
+		ln, err := net.Listen("tcp", ":8080")
+
+		if err != nil {
+			fmt.Printf("Couldn't start listening on port :8080. Error: %v", err)
+		}
+		var wg = new(sync.WaitGroup)
+		wg.Add(1)
+		go KeepListening(ln, wg)
+		wg.Wait()
 	}
 
-	ln, err := net.Listen("tcp", ":8080")
-
-	if err != nil {
-		fmt.Printf("Couldn't start listening on port :8080. Error: %v", err)
-	}
-	var wg = new(sync.WaitGroup)
-	wg.Add(1)
-	go KeepListening(ln, wg, isCustomProto)
-	wg.Wait()
 }
